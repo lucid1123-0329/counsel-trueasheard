@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>명불허전학원 상담 시스템</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    iframe { width: 100%; height: 100%; border: none; }
+    .loading {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+      background: #f8fafc; z-index: 10; transition: opacity 0.3s;
+    }
+    .loading.hide { opacity: 0; pointer-events: none; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #1e3a6e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { font-family: 'Apple SD Gothic Neo', sans-serif; font-size: 14px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>명불허전학원 상담 시스템 로딩 중...</p>
+  </div>
+  <iframe id="app-frame" allowfullscreen></iframe>
+  <script>
+    (function() {
+      var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyplqYjuH90nkXz7j10_H7Xsx1emhUXy7jWVbZ1lds0Fis149El6XyykAbSRtK9XW8G/exec';
+      var params = window.location.search;
+      var frame = document.getElementById('app-frame');
+      frame.src = APPS_SCRIPT_URL + params;
+      frame.onload = function() {
+        document.getElementById('loading').classList.add('hide');
+      };
+      // 5초 후에도 로딩이면 강제 숨김
+      setTimeout(function() {
+        document.getElementById('loading').classList.add('hide');
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>

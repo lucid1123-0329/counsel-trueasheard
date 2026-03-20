@@ -9,8 +9,8 @@ export default function handler(req) {
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyplqYjuH90nkXz7j10_H7Xsx1emhUXy7jWVbZ1lds0Fis149El6XyykAbSRtK9XW8G/exec';
 
   // OG 메타 동적 생성
-  let ogTitle = '명불허전학원 상담 시스템';
-  let ogDesc = '강동구 소수정원 전문 | 국어·영어·수학 맞춤 학습 상담';
+  let ogTitle = '명불허전학원 신규 상담 분석 안내';
+  let ogDesc = '강동구 학습 관리 | 국어·영어·수학 맞춤 학습 상담';
 
   if (page === 'report' && name) {
     ogTitle = `${decodeURIComponent(name)} 학생 - 상담 분석 리포트`;
@@ -68,3 +68,4 @@ export default function handler(req) {
     headers: { 'Content-Type': 'text/html; charset=utf-8' }
   });
 }
+

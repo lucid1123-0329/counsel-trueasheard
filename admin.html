@@ -398,6 +398,7 @@ let S={tk:'',t:null};
 
 function $(id){return document.getElementById(id);}
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function fmtDate(d){if(!d)return'-';try{var dt=new Date(d);if(isNaN(dt))return String(d);return dt.getFullYear()+'.'+(dt.getMonth()+1).toString().padStart(2,'0')+'.'+dt.getDate().toString().padStart(2,'0');}catch(e){return String(d);}}
 function sh(m){$('ovMsg').textContent=m||'로딩 중...';$('ov').classList.add('show');}
 function hd(){$('ov').classList.remove('show');}
 function ts(m,type){const t=$('toast');t.textContent=m;t.className='toast show toast-'+(type||'ok');setTimeout(()=>t.classList.remove('show'),3000);}
@@ -485,7 +486,7 @@ h+='</div></div>';
 h+='<div style="display:flex;gap:8px;margin-top:10px;font-size:12px;flex-wrap:wrap">';
 h+='<span class="chip chip-ok">✅ 검사 완료</span>';
 h+='<span class="chip chip-n">'+typeLabel+'</span>';
-h+='<span class="chip chip-n">'+(s.survey_date||'-')+'</span>';
+h+='<span class="chip chip-n">'+fmtDate(s.survey_date)+'</span>';
 h+='<span class="chip '+relTag+'">신뢰도 '+s.survey_reliability+'</span>';
 h+='</div></div>';
 $('sv-info-card').innerHTML=h;
@@ -532,7 +533,7 @@ h+='<div style="font-size:18px;font-weight:700;color:#1a1440;margin-bottom:10px"
 // 태그 행
 h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">';
 if(rl.score){var rc=rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er';h+='<span class="chip '+rc+'">신뢰도 '+rl.score+'</span>';}
-if(dateStr)h+='<span class="chip chip-n">'+dateStr+'</span>';
+if(dateStr)h+='<span class="chip chip-n">'+fmtDate(dateStr)+'</span>';
 if(cs.recommend_tag_A)h+='<span class="chip chip-ac">'+cs.recommend_tag_A+'</span>';
 if(cs.recommend_tag_B)h+='<span class="chip chip-ac">'+cs.recommend_tag_B+'</span>';
 h+='</div>';
@@ -591,7 +592,7 @@ $('sv-result').innerHTML=h;}
 // ★ SVG 레이더 차트 생성
 function svBuildRadarSVG(scores,labels){
 var cx=160,cy=140,r=100,n=scores.length;
-var svg='<div style="display:flex;justify-content:center;padding:10px 0"><svg width="320" height="290" viewBox="0 0 320 290">';
+var svg='<div style="display:flex;justify-content:center;padding:10px 0"><svg xmlns="http://www.w3.org/2000/svg" width="320" height="290" viewBox="0 0 320 290">';
 // 배경 그리드 (4단계)
 for(var level=4;level>=1;level--){
 var rr=r*level/4;var pts=[];
@@ -803,7 +804,7 @@ var rptUrlAdmin=rptUrl+'&admin=1';
 var h='<div class="form-card">';
 h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
 h+='<div style="font-size:15px;font-weight:700">📊 종합분석 결과</div>';
-h+='<span class="chip chip-n">'+(r.date||'')+'</span>';
+h+='<span class="chip chip-n">'+fmtDate(r.date)+'</span>';
 h+='</div>';
 
 // 데이터 요약 파싱 시도

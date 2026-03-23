@@ -18,6 +18,14 @@
       "dest": "/public/og-mbhj-v2.png"
     },
     {
+      "src": "/admin",
+      "dest": "/public/admin.html"
+    },
+    {
+      "src": "/api/gs",
+      "dest": "/api/gs.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/index.js"
     }

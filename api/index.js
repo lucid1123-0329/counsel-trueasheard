@@ -8,11 +8,6 @@ export default function handler(req) {
 
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyplqYjuH90nkXz7j10_H7Xsx1emhUXy7jWVbZ1lds0Fis149El6XyykAbSRtK9XW8G/exec';
 
-  // page 파라미터 없으면 → 관리자 대시보드로 리다이렉트
-  if (!page) {
-    return Response.redirect(url.origin + '/admin', 302);
-  }
-
   // OG 메타 동적 생성
   let ogTitle = '명불허전학원 신규 상담 분석 안내';
   let ogDesc = '강동구 학습 관리 | 국어·영어·수학 맞춤 학습 상담';

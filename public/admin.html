@@ -49,6 +49,9 @@ nav{flex:1;padding:8px 0}
 
 /* PAGES */
 .pg{display:none;padding:28px 32px 80px;max-width:960px;margin:0 auto}.pg.on{display:block}
+.pg.pg-iframe{padding:0;max-width:100%}
+.iframe-wrap{width:100%;height:calc(100vh - 56px)}
+.gs-iframe{width:100%;height:100%;border:none}
 .page-h{font-size:22px;font-weight:700;letter-spacing:-.03em}.page-sub{font-size:13px;color:var(--t3);margin-top:2px;margin-bottom:24px}
 
 /* PIPE CARDS */
@@ -148,6 +151,8 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 .mbar{display:flex}
 .btab{display:flex!important}
 .pg{padding:16px 14px 120px}
+.pg.pg-iframe{padding:0}
+.pg.pg-iframe .iframe-wrap{height:calc(100vh - 48px)}
 .pipe{grid-template-columns:1fr 1fr;gap:6px}.pipe-v{font-size:22px}
 .row{flex-direction:column;gap:0}
 .csl-wrap{max-width:100%}
@@ -270,40 +275,12 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 </div>
 </div>
 
-<!-- 성향검사 -->
-<div class="pg" id="p-survey">
-<div class="page-h">📝 성향검사</div>
-<p class="page-sub">학생별 성향검사 현황 및 결과 조회</p>
-<div class="pipe" id="svPipe"></div>
-<div class="tw"><table class="tb" id="svTbl"><thead><tr><th>이름</th><th>학년</th><th>학교</th><th>상태</th><th>성향검사</th><th></th></tr></thead><tbody id="svBody"></tbody></table></div>
+<!-- 성향검사/레벨테스트/분석 — 기존 Apps Script iframe (공유) -->
+<div class="pg pg-iframe" id="p-survey">
+<div class="iframe-wrap"><iframe id="gsFrame" class="gs-iframe" allowfullscreen></iframe></div>
 </div>
-
-<!-- 레벨테스트 -->
-<div class="pg" id="p-lt">
-<div class="page-h">🧪 레벨테스트</div>
-<p class="page-sub">레벨테스트 채점 현황 및 결과 조회</p>
-<div class="pipe" id="ltPipe"></div>
-<div class="tw"><table class="tb" id="ltTbl"><thead><tr><th>이름</th><th>학년</th><th>학교</th><th>상태</th><th>영어LT</th><th>수학LT</th><th></th></tr></thead><tbody id="ltBody"></tbody></table></div>
-</div>
-
-<!-- 분석/리포트 -->
-<div class="pg" id="p-analysis">
-<div class="page-h">📊 분석/리포트</div>
-<p class="page-sub">종합분석 결과 및 리포트 링크</p>
-<div class="pipe" id="anPipe"></div>
-<div class="tw"><table class="tb" id="anTbl"><thead><tr><th>이름</th><th>학년</th><th>학교</th><th>성향</th><th>영어</th><th>수학</th><th>분석</th><th>상태</th><th></th></tr></thead><tbody id="anBody"></tbody></table></div>
-</div>
-
-<!-- 상세 보기 모달 -->
-<div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:400;align-items:flex-end;justify-content:center" id="cdMo" onclick="if(event.target===this)closeCd()">
-<div style="background:var(--sf);border-radius:16px 16px 0 0;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -4px 24px rgba(0,0,0,.1)">
-<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--ln)">
-<div style="font-size:16px;font-weight:700" id="cdMoTi">분석 결과</div>
-<button class="btn btn-g btn-sm" onclick="closeCd()">닫기</button>
-</div>
-<div id="cdMoBody" style="overflow-y:auto;padding:16px 20px"></div>
-</div>
-</div>
+<div class="pg pg-iframe" id="p-lt"></div>
+<div class="pg pg-iframe" id="p-analysis"></div>
 
 </div><!-- main -->
 </div><!-- app -->
@@ -361,145 +338,19 @@ const ni=document.querySelector(`.ni[data-p="${p}"]`);if(ni)ni.classList.add('on
 $('mbarT').textContent=ni?ni.textContent.trim():'';
 $('side').classList.remove('op');$('sideBd').style.display='none';
 document.querySelectorAll('.btab-item').forEach(b=>b.classList.toggle('on',b.dataset.bp===p));
-if(p==='p-survey')loadTab('survey');
-if(p==='p-lt')loadTab('lt');
-if(p==='p-analysis')loadTab('analysis');}
+if(p==='p-survey'||p==='p-lt'||p==='p-analysis')loadGsFrame(p);}
 
-// LOAD TABS — 공통 학생 목록 조회
-let tabCache=null;
-async function loadTab(type){
-if(!tabCache){sh('학생 목록 조회...');const r=await gA('tp_counselDashboard',{token:S.tk});hd();if(!r.ok){ts(r.error,'er');return;}tabCache=r;}
-const d=tabCache;const list=d.recent||[];const p=d.pipeline;
-
-if(type==='survey'){
-const done=list.filter(s=>s.hasSurvey).length;
-$('svPipe').innerHTML=`<div class="pipe"><div class="pipe-c"><div class="pipe-v">${list.length}</div><div class="pipe-l">전체</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--ok)">${done}</div><div class="pipe-l">검사 완료</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--wn)">${list.length-done}</div><div class="pipe-l">미완료</div></div></div>`;
-$('svBody').innerHTML=list.map(s=>`<tr>
-<td style="font-weight:500">${esc(s.name)}</td><td>${s.grade}</td><td>${s.school||''}</td>
-<td><span class="chip chip-${s.status==='분석완료'?'ok':s.status==='레벨완료'?'ac':s.status==='성향완료'?'wn':'n'}">${s.status}</span></td>
-<td>${s.hasSurvey?'<span class="chip chip-ok">완료</span>':'<span style="color:var(--t4)">미완료</span>'}</td>
-<td>${s.hasSurvey?`<button class="btn btn-g btn-sm" onclick="viewDetail('${esc(s.name)}','psy')">결과 보기</button>`:''}</td></tr>`).join('')||'<tr><td colspan=6 style="text-align:center;padding:20px;color:var(--t3)">학생이 없습니다</td></tr>';
-}
-
-if(type==='lt'){
-const engDone=list.filter(s=>s.hasEngLT).length;
-const mathDone=list.filter(s=>s.hasMathLT).length;
-$('ltPipe').innerHTML=`<div class="pipe"><div class="pipe-c"><div class="pipe-v">${list.length}</div><div class="pipe-l">전체</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--ac)">${engDone}</div><div class="pipe-l">영어 완료</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--ac)">${mathDone}</div><div class="pipe-l">수학 완료</div></div></div>`;
-$('ltBody').innerHTML=list.map(s=>`<tr>
-<td style="font-weight:500">${esc(s.name)}</td><td>${s.grade}</td><td>${s.school||''}</td>
-<td><span class="chip chip-${s.status==='분석완료'?'ok':s.status==='레벨완료'?'ac':s.status==='성향완료'?'wn':'n'}">${s.status}</span></td>
-<td>${s.hasEngLT?`<button class="btn btn-g btn-sm" onclick="viewDetail('${esc(s.name)}','eng')">보기</button>`:'<span style="color:var(--t4)">—</span>'}</td>
-<td>${s.hasMathLT?`<button class="btn btn-g btn-sm" onclick="viewDetail('${esc(s.name)}','math')">보기</button>`:'<span style="color:var(--t4)">—</span>'}</td>
-<td>${!s.hasEngLT&&!s.hasMathLT?'<span style="color:var(--t4)">미채점</span>':''}</td></tr>`).join('')||'<tr><td colspan=7 style="text-align:center;padding:20px;color:var(--t3)">학생이 없습니다</td></tr>';
-}
-
-if(type==='analysis'){
-$('anPipe').innerHTML=`<div class="pipe"><div class="pipe-c"><div class="pipe-v" style="color:var(--t3)">${p['접수']||0}</div><div class="pipe-l">접수</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--wn)">${p['성향완료']||0}</div><div class="pipe-l">성향완료</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--ac)">${p['레벨완료']||0}</div><div class="pipe-l">레벨완료</div></div><div class="pipe-c"><div class="pipe-v" style="color:var(--ok)">${p['분석완료']||0}</div><div class="pipe-l">분석완료</div></div></div>`;
-$('anBody').innerHTML=list.map(s=>`<tr>
-<td style="font-weight:500">${esc(s.name)}</td><td>${s.grade}</td><td>${s.school||''}</td>
-<td>${s.hasSurvey?'<span class="chip chip-ok" style="font-size:10px">✓</span>':'<span style="color:var(--t4)">—</span>'}</td>
-<td>${s.hasEngLT?'<span class="chip chip-ok" style="font-size:10px">✓</span>':'<span style="color:var(--t4)">—</span>'}</td>
-<td>${s.hasMathLT?'<span class="chip chip-ok" style="font-size:10px">✓</span>':'<span style="color:var(--t4)">—</span>'}</td>
-<td>${s.hasAnalysis?'<span class="chip chip-ok" style="font-size:10px">✓</span>':'<span style="color:var(--t4)">—</span>'}</td>
-<td><span class="chip chip-${s.status==='분석완료'?'ok':s.status==='레벨완료'?'ac':s.status==='성향완료'?'wn':'n'}">${s.status}</span></td>
-<td>${s.hasSurvey||s.hasEngLT||s.hasMathLT?`<button class="btn btn-g btn-sm" onclick="viewAll('${esc(s.name)}',${s.hasSurvey},${s.hasEngLT},${s.hasMathLT})">보기</button>`:''}</td></tr>`).join('')||'<tr><td colspan=9 style="text-align:center;padding:20px;color:var(--t3)">학생이 없습니다</td></tr>';
-}}
-
-// DETAIL VIEW
-let cdDetailCache={};
-async function viewDetail(name,type){
-sh('결과 조회...');
-if(!cdDetailCache[name]){const r=await gA('tp_counselStudentDetail',{student:name,token:S.tk});
-if(!r.ok){hd();ts(r.error,'er');return;}cdDetailCache[name]=r.student;}
-hd();const st=cdDetailCache[name];
-let title='',html='';
-
-if(type==='psy'&&st.surveyJson){
-title=name+' — 성향검사 결과';
-try{const pj=JSON.parse(st.surveyJson);const pa=pj.profileAnalysis||{};const ps=pj.profileScores||{};const rl=pj.reliability||{};const cs=pj.consultStrategy||{};const sa=pj.sectionAnalysis||{};
-html=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px">
-<span class="chip ${rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er'}">신뢰도 ${rl.score||'—'}</span>
-<span class="chip chip-n">${st.grade||''} · ${st.school||''}</span>
-${cs.recommend_tag_A?`<span class="chip chip-ac">${cs.recommend_tag_A}</span>`:''}
-${cs.recommend_tag_B?`<span class="chip chip-ac">${cs.recommend_tag_B}</span>`:''}
-</div>`;
-if(pa.summary_title)html+=`<div style="font-size:15px;font-weight:700;margin-bottom:4px">${pa.summary_title}</div>`;
-if(pa.summary_text)html+=`<p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:16px">${pa.summary_text}</p>`;
-if(ps.motivation!==undefined){
-const dims=[['동기',ps.motivation],['계획',ps.planning],['메타인지',ps.metacognition],['자기조절',ps.self_regulation],['도움요청',ps.help_seeking]];
-html+=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px">`;
-dims.forEach(([l,v])=>{const c=v>=70?'var(--ok)':v>=40?'var(--wn)':'var(--er)';
-html+=`<div style="text-align:center;padding:10px 4px;background:#faf8f5;border-radius:8px"><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:11px;color:var(--t3)">${l}</div></div>`;});
-html+=`</div>`;}
-const secNames={section1_motivation:'학습 동기',section2_cognition:'인지 전략',section3_behavior:'행동 조절',section4_emotion:'정서 관리',section5_environment:'학습 환경'};
-const secClrs=['#6366f1','#22c55e','#f59e0b','#ec4899','#0066ff'];
-Object.keys(secNames).forEach((sk,idx)=>{const sec=sa[sk];if(!sec)return;
-html+=`<div style="margin-bottom:12px;padding:10px;background:#faf8f5;border-radius:8px;border-left:3px solid ${secClrs[idx]}">
-<div style="font-size:13px;font-weight:600;color:${secClrs[idx]};margin-bottom:4px">${secNames[sk]}</div>`;
-if(sec.sectionSummary)html+=`<p style="font-size:12px;color:var(--t3);margin-bottom:6px">${sec.sectionSummary}</p>`;
-if(sec.detailedScores){Object.entries(sec.detailedScores).forEach(([k,v])=>{
-html+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="font-size:11px;color:var(--t2);width:80px;text-align:right">${k}</span><div style="flex:1;height:6px;background:var(--ln);border-radius:3px;overflow:hidden"><div style="width:${v}%;height:100%;background:${secClrs[idx]};border-radius:3px"></div></div><span style="font-size:11px;font-weight:600;width:28px">${v}</span></div>`;});}
-html+=`</div>`;});
-if(cs.recommend_text)html+=`<div style="padding:12px;background:var(--acbg);border-radius:8px;border-left:3px solid var(--ac);margin-top:8px"><div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">상담 전략</div><p style="font-size:12px;color:var(--t1);line-height:1.8">${cs.recommend_text}</p></div>`;
-}catch(e){html=`<p style="color:var(--er)">파싱 오류: ${e.message}</p>`;}
-}else if(type==='eng'&&st.engLtJson){
-title=name+' — 영어 레벨테스트';html=renderLt(st.engLtJson,'영어',st);
-}else if(type==='math'&&st.mathLtJson){
-title=name+' — 수학 레벨테스트';html=renderLt(st.mathLtJson,'수학',st);
-}else{title=name;html='<p style="color:var(--t3);padding:20px;text-align:center">데이터가 없습니다</p>';}
-
-$('cdMoTi').textContent=title;$('cdMoBody').innerHTML=html;$('cdMo').style.display='flex';}
-
-function renderLt(jsonStr,subject,st){
-try{const lt=JSON.parse(jsonStr);let h=`<div style="font-size:13px;color:var(--t3);margin-bottom:12px">${st.grade||''} · ${st.school||''} · ${subject}</div>`;
-const hasAction=lt.action&&Array.isArray(lt.action);
-const hasContent=lt.content&&Array.isArray(lt.content);
-const hasPre=lt.pre&&Array.isArray(lt.pre);
-
-if(hasPre||lt.current||lt.post){
-const stages=[];
-if(lt.pre)stages.push({label:'선행',data:lt.pre,color:'#6366f1'});
-if(lt.current)stages.push({label:'현행',data:lt.current,color:'#0066ff'});
-if(lt.post)stages.push({label:'후행',data:lt.post,color:'#22c55e'});
-const areas=[...new Set(stages.flatMap(s=>s.data.map(d=>d.name)))];
-h+=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">`;
-stages.forEach(stg=>{const total=stg.data.reduce((s,d)=>s+(d.value||0),0);const max=stg.data.reduce((s,d)=>s+(d.full||0),0);const pct=max>0?Math.round(total/max*100):0;
-h+=`<div style="flex:1;min-width:80px;padding:12px;background:#faf8f5;border-radius:10px;text-align:center;border:2px solid ${stg.color}20"><div style="font-size:10px;font-weight:700;color:${stg.color}">${stg.label}</div><div style="font-size:22px;font-weight:800;color:${pct>=70?'var(--ok)':pct>=40?'var(--wn)':'var(--er)'}">${total.toFixed(1)}<span style="font-size:11px;color:var(--t3)">/${max.toFixed(1)}</span></div></div>`;});
-h+=`</div>`;
-h+=`<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px"><thead><tr style="background:#faf8f5"><th style="padding:8px;text-align:left;font-size:11px;color:var(--t3)">영역</th>`;
-stages.forEach(stg=>{h+=`<th style="padding:8px;text-align:center;font-size:11px;color:${stg.color}">${stg.label}</th>`;});
-h+=`<th style="padding:8px;text-align:center;font-size:11px;color:var(--t3)">배점</th></tr></thead><tbody>`;
-areas.forEach(area=>{h+=`<tr style="border-bottom:1px solid var(--lnl)"><td style="padding:6px 8px;font-weight:500">${area}</td>`;
-let fullVal=0;stages.forEach(stg=>{const d=stg.data.find(x=>x.name===area);const v=d?d.value:0;if(d&&d.full)fullVal=d.full;const pct=fullVal>0?Math.round(v/fullVal*100):0;
-h+=`<td style="padding:6px 8px;text-align:center;font-weight:700;color:${pct>=70?'var(--ok)':pct>=40?'var(--wn)':'var(--er)'}">${typeof v==='number'?v.toFixed(1):v}</td>`;});
-h+=`<td style="padding:6px 8px;text-align:center;color:var(--t3)">${typeof fullVal==='number'?fullVal.toFixed(1):fullVal}</td></tr>`;});
-h+=`</tbody></table>`;
-}else if(hasAction){
-const total=lt.action.reduce((s,a)=>s+(a.A||0),0);const max=lt.action.reduce((s,a)=>s+(a.fullMark||0),0);const pct=max>0?Math.round(total/max*100):0;
-h+=`<div style="display:flex;gap:8px;margin-bottom:14px">`;
-h+=`<div style="padding:14px;background:#faf8f5;border-radius:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:${pct>=70?'var(--ok)':pct>=40?'var(--wn)':'var(--er)'}">${total}<span style="font-size:13px;color:var(--t3)">/${max}</span></div><div style="font-size:11px;color:var(--t3)">총점 (${pct}%)</div></div>`;
-lt.action.forEach(a=>{const ap=a.fullMark>0?Math.round((a.A||0)/a.fullMark*100):0;
-h+=`<div style="flex:1;padding:12px;background:#faf8f5;border-radius:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:${ap>=70?'var(--ok)':ap>=40?'var(--wn)':'var(--er)'}">${a.A||0}<span style="font-size:11px;color:var(--t3)">/${a.fullMark}</span></div><div style="font-size:10px;color:var(--t3)">${a.subject||''}</div></div>`;});
-h+=`</div>`;
-}
-if(hasContent){
-h+=`<div style="font-size:13px;font-weight:700;margin-bottom:8px">문항별 분석</div>`;
-h+=`<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#faf8f5"><th style="padding:6px 8px;text-align:left;font-size:11px">문항</th><th style="padding:6px 8px;text-align:center;font-size:11px">점수</th><th style="padding:6px 8px;text-align:center;font-size:11px">평균</th><th style="padding:6px 8px;text-align:center;font-size:11px">비교</th></tr></thead><tbody>`;
-lt.content.forEach(c=>{const diff=((c.score||0)-(c.avg||0)).toFixed(1);const better=parseFloat(diff)>=0;
-h+=`<tr style="border-bottom:1px solid var(--lnl)"><td style="padding:5px 8px">${c.name||''}</td><td style="padding:5px 8px;text-align:center;font-weight:700">${c.score}</td><td style="padding:5px 8px;text-align:center;color:var(--t3)">${c.avg}</td><td style="padding:5px 8px;text-align:center;font-weight:600;color:${better?'var(--ok)':'var(--er)'}">${better?'+':''}${diff}</td></tr>`;});
-h+=`</tbody></table>`;}
-return h;}catch(e){return `<p style="color:var(--er)">파싱 오류: ${e.message}</p>`;}}
-
-function viewAll(name,hasPsy,hasEng,hasMath){
-let btns=[];
-if(hasPsy)btns.push(`<button class="btn btn-g" onclick="viewDetail('${esc(name)}','psy')">성향검사</button>`);
-if(hasEng)btns.push(`<button class="btn btn-g" onclick="viewDetail('${esc(name)}','eng')">영어 LT</button>`);
-if(hasMath)btns.push(`<button class="btn btn-g" onclick="viewDetail('${esc(name)}','math')">수학 LT</button>`);
-$('cdMoTi').textContent=name+' — 결과 보기';
-$('cdMoBody').innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:20px">${btns.join('')}</div>`;
-$('cdMo').style.display='flex';}
-
-function closeCd(){$('cdMo').style.display='none';}
+const GS_URL='https://script.google.com/macros/s/AKfycbyplqYjuH90nkXz7j10_H7Xsx1emhUXy7jWVbZ1lds0Fis149El6XyykAbSRtK9XW8G/exec';
+let gsLoaded=false;
+function loadGsFrame(pgId){
+const frame=$('gsFrame');
+const target=$(pgId);
+// iframe을 현재 활성 탭으로 이동
+if(!target.contains(frame)){
+const wrap=document.createElement('div');wrap.className='iframe-wrap';wrap.appendChild(frame);
+target.innerHTML='';target.appendChild(wrap);}
+// 최초 1회만 로드
+if(!gsLoaded){frame.src=GS_URL;gsLoaded=true;}}
 
 function tglSide(){const s=$('side'),bd=$('sideBd');const open=!s.classList.contains('op');s.classList.toggle('op');bd.style.display=open?'block':'none';}
 

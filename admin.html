@@ -162,12 +162,13 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 .q-cell input{width:100%;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;font-family:monospace;outline:0;padding:2px 0}
 .q-cell.correct{background:var(--okbg);border-color:#86efac}.q-cell.correct input{color:#15803d}
 .q-cell.wrong{background:var(--erbg);border-color:#fca5a5}.q-cell.wrong input{color:var(--er)}
-.sv-q-card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:8px}
+.sv-q-card{background:var(--sf);border:1.5px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:8px;transition:border-color .2s,background .2s}
+.sv-q-card.sv-answered{border-color:#86efac;background:#f0fdf4}
 .sv-q-card .q-text{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.6}
 .sv-q-card .q-opts{display:flex;gap:4px;flex-wrap:wrap}
-.sv-q-card .q-opt{padding:8px 14px;border:1.5px solid var(--ln);border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;background:#faf8f5}
-.sv-q-card .q-opt:hover{border-color:var(--ac)}
-.sv-q-card .q-opt.sel{border-color:var(--ac);background:var(--acbg);color:var(--ac);font-weight:600}
+.sv-q-card .q-opt{flex:1;min-width:50px;padding:8px 4px;border:1.5px solid var(--ln);border-radius:8px;font-size:11px;cursor:pointer;transition:.2s;background:#faf8f5;text-align:center;line-height:1.3}
+.sv-q-card .q-opt:hover{border-color:var(--ac);background:var(--acbg)}
+.sv-q-card .q-opt.sel{border-color:var(--ac);background:var(--ac);color:#fff;font-weight:600}
 
 /* LOADING + TOAST */
 .ov{display:none;position:fixed;inset:0;background:rgba(255,255,255,.88);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px}
@@ -318,23 +319,46 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 <div class="pg" id="p-survey">
 <div class="page-h">📝 성향검사</div>
 <p class="page-sub">학생을 선택하여 성향검사를 실시하거나 결과를 조회합니다</p>
-<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-<select id="sv-student" class="field-select" style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5" onchange="onSvStudentChange()"><option value="">학생을 선택하세요...</option></select>
-<button class="btn btn-g" onclick="loadSvStudents()">새로고침</button>
+
+<!-- 학생 선택 바 -->
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
+<div style="flex:1;min-width:200px">
+<select id="sv-student" style="width:100%;padding:10px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5" onchange="onSvStudentChange()"><option value="">학생을 선택하세요...</option></select>
 </div>
-<div id="sv-status"></div>
-<div id="sv-progress-wrap" style="display:none" class="form-card">
+<button class="btn btn-g" onclick="loadSvStudents()">새로고침</button>
+<button class="btn btn-sm" id="sv-btn-analyze" style="display:none;background:var(--ac);color:#fff" onclick="svRunAnalysis()">🤖 분석 실행</button>
+<button class="btn btn-sm" id="sv-btn-rerun" style="display:none;background:var(--wn);color:#fff" onclick="svRerun()">🔄 재분석</button>
+</div>
+
+<!-- 모드 1: 학생 정보 + 결과 보기 -->
+<div id="sv-view-mode" style="display:none">
+<!-- 좌측 상태 카드 -->
+<div id="sv-info-card"></div>
+<!-- 결과 영역 -->
+<div id="sv-result"></div>
+</div>
+
+<!-- 모드 2: 검사 입력 -->
+<div id="sv-input-mode" style="display:none">
+<div class="form-card" id="sv-progress-wrap">
 <div style="height:6px;background:var(--ln);border-radius:3px;overflow:hidden;margin-bottom:4px"><div id="sv-fill" style="width:0%;height:100%;background:var(--ac);border-radius:3px;transition:width .3s"></div></div>
 <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t3)"><span id="sv-prog-text">0/0</span><span id="sv-prog-pct">0%</span></div>
 </div>
 <div id="sv-questions"></div>
-<div id="sv-nav" style="display:none;padding:12px 0;display:flex;justify-content:space-between;align-items:center">
-<button class="btn btn-g" id="sv-prev" onclick="svPrev()">← 이전</button>
+<div id="sv-nav" style="display:flex;padding:12px 0;justify-content:space-between;align-items:center">
+<button class="btn btn-g" id="sv-prev" onclick="svPrev()" style="display:none">← 이전</button>
 <span id="sv-page-info" style="font-size:13px;color:var(--t3)"></span>
-<button class="btn btn-p" id="sv-next" onclick="svNext()">다음 →</button>
-<button class="btn" id="sv-submit" onclick="svSubmit()" style="display:none;background:var(--ok);color:#fff">제출 및 분석</button>
+<button class="btn btn-p" id="sv-next" onclick="svNext()" style="display:none">다음 →</button>
+<button class="btn" id="sv-submit" onclick="svSubmit()" style="display:none;background:var(--ok);color:#fff">제출 및 분석 실행</button>
 </div>
-<div id="sv-result"></div>
+</div>
+
+<!-- 초기 안내 -->
+<div id="sv-empty" class="form-card" style="text-align:center;padding:40px">
+<div style="font-size:36px;margin-bottom:8px">📝</div>
+<div style="font-size:16px;font-weight:600;margin-bottom:4px">성향검사 결과</div>
+<p style="font-size:13px;color:var(--t3)">학생을 선택하면 분석 결과가 표시됩니다</p>
+</div>
 </div>
 
 <!-- 레벨테스트 -->
@@ -440,126 +464,233 @@ if(p==='p-lt')loadLtStudents();
 if(p==='p-analysis'&&$('an-content').style.display!=='none')loadAnStudents();}
 
 // ═══ 성향검사 ═══
-var SV={students:[],questions:[],answers:[],page:0,perPage:10,studentId:'',surveyType:''};
+var SV={students:[],questions:[],answers:{},page:0,perPage:20,studentId:'',surveyType:''};
+
+function svShowMode(mode){
+$('sv-empty').style.display=mode==='empty'?'':'none';
+$('sv-view-mode').style.display=mode==='view'?'':'none';
+$('sv-input-mode').style.display=mode==='input'?'':'none';
+$('sv-btn-analyze').style.display='none';$('sv-btn-rerun').style.display='none';
+}
+
 async function loadSvStudents(){
 sh('학생 목록...');const r=await gA('tp_counsel_surveyStudents',{token:S.tk});hd();
 if(!r.ok){ts(r.error,'er');return;}SV.students=r.students;
-var sel=$('sv-student');sel.innerHTML='<option value="">학생을 선택하세요...</option>';
-r.students.forEach(function(s){sel.innerHTML+='<option value="'+s.student_id+'">'+esc(s.name)+' ('+s.grade+', '+s.school+') '+(s.has_survey?'✓ 완료':'')+'</option>';});}
+var sel=$('sv-student');var prev=sel.value;
+sel.innerHTML='<option value="">학생을 선택하세요...</option>';
+r.students.forEach(function(s){var o=document.createElement('option');o.value=s.student_id;
+o.textContent=s.name+' ('+s.grade+' · '+s.school+')'+(s.has_survey?' ✅':'');sel.appendChild(o);});
+if(prev){sel.value=prev;onSvStudentChange();}}
 
 async function onSvStudentChange(){
-var sid=$('sv-student').value;if(!sid){$('sv-status').innerHTML='';return;}
+var sid=$('sv-student').value;
+if(!sid){svShowMode('empty');$('sv-result').innerHTML='';$('sv-info-card').innerHTML='';return;}
 var s=SV.students.find(function(x){return x.student_id===sid;});
+if(!s)return;
 SV.studentId=sid;SV.surveyType=s.grade.indexOf('초')===0?'elementary':'secondary';
+var typeLabel=SV.surveyType==='elementary'?'초등용 (155문항)':'중고등용 (170문항)';
+
 if(s.has_survey){
-$('sv-status').innerHTML='<div class="form-card"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>'+esc(s.name)+'</strong> — 검사 완료 ('+s.survey_date+', 신뢰도: '+s.survey_reliability+')</div><div style="display:flex;gap:6px"><button class="btn btn-g btn-sm" onclick="svViewResult(\''+sid+'\')">결과 보기</button><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="svStartNew()">재검사</button></div></div></div>';
-$('sv-progress-wrap').style.display='none';$('sv-questions').innerHTML='';$('sv-nav').style.display='none';
+// ★ 결과 있는 학생: 상태 카드 + 자동 결과 로드
+svShowMode('view');
+$('sv-btn-rerun').style.display='';
+var relTag=s.survey_reliability==='상'?'chip-ok':s.survey_reliability==='중'?'chip-wn':'chip-er';
+var h='<div class="form-card" style="margin-bottom:12px">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+h+='<div><strong style="font-size:15px">'+esc(s.name)+'</strong><span style="font-size:12px;color:var(--t3);margin-left:8px">'+s.grade+' · '+s.school+'</span></div>';
+h+='<div style="display:flex;gap:6px"><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="svStartNew()">재검사</button></div>';
+h+='</div>';
+h+='<div style="display:flex;gap:12px;margin-top:10px;font-size:12px;flex-wrap:wrap">';
+h+='<span class="chip chip-ok">✅ 검사 완료</span>';
+h+='<span style="color:var(--t3)">유형: <strong>'+typeLabel+'</strong></span>';
+h+='<span style="color:var(--t3)">검사일: <strong>'+(s.survey_date||'-')+'</strong></span>';
+h+='<span>신뢰도: <span class="chip '+relTag+'" style="font-size:10px">'+s.survey_reliability+'</span></span>';
+h+='</div></div>';
+$('sv-info-card').innerHTML=h;
+
+// ★ 결과 자동 로드
+svLoadResult(sid);
 }else{
-$('sv-status').innerHTML='<div class="form-card"><strong>'+esc(s.name)+'</strong> — 성향검사 미실시<br><button class="btn btn-p btn-sm" style="margin-top:8px" onclick="svStartNew()">검사 시작</button></div>';
+// 미완료 학생: 검사 시작 안내
+svShowMode('view');
+$('sv-btn-analyze').style.display='';
+var h='<div class="form-card" style="margin-bottom:12px">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+h+='<div><strong style="font-size:15px">'+esc(s.name)+'</strong><span style="font-size:12px;color:var(--t3);margin-left:8px">'+s.grade+' · '+s.school+'</span></div>';
+h+='<button class="btn btn-p btn-sm" onclick="svStartNew()">📝 검사 시작</button>';
+h+='</div>';
+h+='<div style="display:flex;gap:12px;margin-top:10px;font-size:12px;flex-wrap:wrap">';
+h+='<span class="chip chip-n">📋 검사 대기</span>';
+h+='<span style="color:var(--t3)">유형: <strong>'+typeLabel+'</strong></span>';
+h+='<span style="color:var(--t3)">상태: <strong>'+s.status+'</strong></span>';
+h+='</div></div>';
+h+='<div class="form-card" style="background:var(--wnbg);border-color:#fde68a">';
+h+='<div style="font-size:12px;color:#92400e;line-height:1.6"><b>📌 분석 실행 방법:</b><br>';
+h+='1. [RAW] 성향응답 탭에 학생 응답 데이터가 있어야 합니다<br>';
+h+='2. 기존 [FORM] 시트에서 데이터를 복사하거나, 웹앱 성향검사 폼으로 새로 입력<br>';
+h+='3. 위 "검사 시작" 또는 "분석 실행" 버튼 클릭</div></div>';
+$('sv-info-card').innerHTML=h;
+$('sv-result').innerHTML='';
 }}
 
-async function svStartNew(){
-sh('문항 로드 중...');
-var r=await gA('tp_counsel_surveyQuestions',{type:SV.surveyType,token:S.tk});hd();
-if(!r.ok){ts(r.error,'er');return;}
-SV.questions=r.questions;SV.answers=new Array(r.questions.length).fill(0);SV.page=0;
-$('sv-status').innerHTML='';$('sv-progress-wrap').style.display='block';$('sv-nav').style.display='flex';
-svRenderPage();}
+// ★ 결과 로드 + 렌더링 (survey.html renderResult 100% 재현)
+async function svLoadResult(sid){
+$('sv-result').innerHTML='<div style="text-align:center;padding:24px"><div class="spin" style="margin:0 auto"></div><p style="font-size:12px;color:var(--t3);margin-top:8px">결과 로딩...</p></div>';
+var r=await gA('tp_counsel_surveyResult',{student:sid,token:S.tk});
+if(!r.ok){$('sv-result').innerHTML='<div class="form-card" style="color:var(--er)">⚠️ '+esc(r.error||'결과를 불러올 수 없습니다')+'</div>';return;}
+try{
+var data=JSON.parse(r.dataJson);svRenderResult(data);
+}catch(e){$('sv-result').innerHTML='<div class="form-card" style="color:var(--er)">JSON 파싱 오류: '+esc(e.message)+'</div>';}}
 
-function svRenderPage(){
-var start=SV.page*SV.perPage;var end=Math.min(start+SV.perPage,SV.questions.length);
+function svRenderResult(data){
 var h='';
-for(var i=start;i<end;i++){
-var q=SV.questions[i];
-h+='<div class="sv-q-card"><div class="q-text"><span style="color:var(--ac);font-weight:700">Q'+q.index+'.</span> '+esc(q.text)+'</div><div class="q-opts">';
-for(var v=1;v<=5;v++){h+='<div class="q-opt'+(SV.answers[i]===v?' sel':'')+'" onclick="svAnswer('+i+','+v+')">'+v+'</div>';}
-h+='</div></div>';}
-$('sv-questions').innerHTML=h;
-var answered=SV.answers.filter(function(a){return a>0;}).length;
-var pct=Math.round(answered/SV.questions.length*100);
-$('sv-fill').style.width=pct+'%';$('sv-prog-text').textContent=answered+'/'+SV.questions.length;$('sv-prog-pct').textContent=pct+'%';
-var totalPages=Math.ceil(SV.questions.length/SV.perPage);
-$('sv-page-info').textContent=(SV.page+1)+' / '+totalPages;
-$('sv-prev').style.display=SV.page>0?'':'none';
-$('sv-next').style.display=SV.page<totalPages-1?'':'none';
-$('sv-submit').style.display=SV.page===totalPages-1?'':'none';}
+// 5대 역량 점수 카드
+if(data.profileScores){
+var ps=data.profileScores;
+var names={motivation:'동기',planning:'계획',metacognition:'메타인지',self_regulation:'자기조절',help_seeking:'도움요청'};
+h+='<div class="sr-scores">';
+Object.keys(names).forEach(function(key){
+var v=ps[key]||0;var c=v>=70?'var(--ok)':v>=40?'var(--wn)':'var(--er)';
+h+='<div class="sr-sc"><div class="val" style="color:'+c+'">'+v+'</div><div class="lbl">'+names[key]+'</div></div>';});
+h+='</div>';}
 
-function svAnswer(idx,val){SV.answers[idx]=val;svRenderPage();}
-function svNext(){SV.page++;svRenderPage();window.scrollTo(0,0);}
-function svPrev(){SV.page--;svRenderPage();window.scrollTo(0,0);}
-
-async function svSubmit(){
-var unanswered=SV.answers.filter(function(a){return a===0;}).length;
-if(unanswered>0){if(!confirm(unanswered+'개 미응답 문항이 있습니다. 제출하시겠습니까?'))return;}
-sh('Gemini 분석 중... (1~2분 소요)');
-var r=await pA({action:'tp_counsel_surveySubmit',token:S.tk,data:{studentId:SV.studentId,surveyType:SV.surveyType,answers:SV.answers}});
-hd();if(r.ok){ts(r.message,'ok');$('sv-questions').innerHTML='';$('sv-nav').style.display='none';$('sv-progress-wrap').style.display='none';
-$('sv-status').innerHTML='<div class="form-card" style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:8px">✅</div><p style="font-size:15px;font-weight:600">'+r.message+'</p><button class="btn btn-p btn-sm" style="margin-top:12px" onclick="svViewResult(\''+SV.studentId+'\')">결과 보기</button></div>';
-loadSvStudents();}else{ts(r.error,'er');}}
-
-async function svViewResult(sid){
-sh('결과 조회...');var r=await gA('tp_counsel_surveyResult',{student:sid,token:S.tk});hd();
-if(!r.ok){ts(r.error,'er');return;}
-try{var pj=JSON.parse(r.dataJson);var pa=pj.profileAnalysis||{};var ps=pj.profileScores||{};var rl=pj.reliability||{};var cs=pj.consultStrategy||{};var sa=pj.sectionAnalysis||{};
-var h='<div class="form-card">';
-
-// 상단 태그
-h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">';
-if(rl.score){var rc=rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er';h+='<span class="chip '+rc+'">신뢰도 '+rl.score+'</span>';}
-if(r.date)h+='<span class="chip chip-n">'+r.date+'</span>';
-if(cs.priority)h+='<span class="chip chip-wn">'+cs.priority+'</span>';
-if(cs.recommend_tag_A)h+='<span class="chip chip-ac">'+cs.recommend_tag_A+'</span>';
-if(cs.recommend_tag_B)h+='<span class="chip chip-ac">'+cs.recommend_tag_B+'</span>';
+// 신뢰도 + 상담전략 (2컬럼)
+h+='<div class="sr-cards">';
+if(data.reliability){
+var rl=data.reliability;var relTag=rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er';
+h+='<div class="sr-card"><h5>신뢰도 <span class="chip '+relTag+'" style="font-size:10px">'+rl.score+'</span></h5>';
+h+='<p>'+(rl.comment||'')+'</p></div>';}
+if(data.consultStrategy){
+var cs=data.consultStrategy;
+h+='<div class="sr-card"><h5>상담 전략 <span class="chip chip-wn" style="font-size:10px">'+(cs.priority||'')+'</span></h5>';
+h+='<p><strong>'+(cs.recommend_tag_A||'')+'</strong>'+(cs.recommend_tag_B?' · '+cs.recommend_tag_B:'')+'</p>';
+h+='<p style="margin-top:4px">'+(cs.recommend_text||'')+'</p></div>';}
 h+='</div>';
 
 // 종합 요약
-if(pa.summary_title)h+='<div style="font-size:17px;font-weight:700;color:#1a1440;margin-bottom:6px">'+pa.summary_title+'</div>';
-if(pa.summary_text)h+='<p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:20px">'+pa.summary_text+'</p>';
+if(data.profileAnalysis){
+var pa=data.profileAnalysis;
+h+='<div class="sr-sec"><h5>'+(pa.summary_title||'종합 요약')+'</h5>';
+h+='<p>'+(pa.summary_text||'')+'</p></div>';}
 
-// 5대 역량 점수 카드 그리드
-var scoreNames=[['motivation','동기'],['planning','계획'],['metacognition','메타인지'],['self_regulation','자기조절'],['help_seeking','도움요청']];
-h+='<div class="sr-scores">';
-scoreNames.forEach(function(d){var v=ps[d[0]]||0;var c=v>=70?'var(--ok)':v>=40?'var(--wn)':'var(--er)';h+='<div class="sr-sc"><div class="val" style="color:'+c+'">'+v+'</div><div class="lbl">'+d[1]+'</div></div>';});
-h+='</div>';
-
-// 신뢰도 + 상담 전략 카드
-h+='<div class="sr-cards">';
-if(rl.score){h+='<div class="sr-card"><h5>신뢰도 <span class="chip '+(rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er')+'" style="font-size:10px">'+rl.score+'</span></h5><p>'+(rl.comment||'')+'</p></div>';}
-if(cs.recommend_text){h+='<div class="sr-card"><h5>상담 전략</h5><p><strong>'+(cs.recommend_tag_A||'')+'</strong>'+(cs.recommend_tag_B?' · '+cs.recommend_tag_B:'')+'</p><p style="margin-top:4px">'+cs.recommend_text+'</p></div>';}
-h+='</div>';
-
-// 5개 섹션 상세 분석
+// 5개 섹션 상세 분석 (각 섹션: 제목 + 요약 + 하위 항목 막대그래프)
 var sections=[
 {key:'section1_motivation',title:'1부: 동기'},
 {key:'section2_cognition',title:'2부: 인지'},
 {key:'section3_behavior',title:'3부: 행동'},
 {key:'section4_emotion',title:'4부: 정서'},
-{key:'section5_environment',title:'5부: 환경'}
-];
+{key:'section5_environment',title:'5부: 환경'}];
+
+if(data.sectionAnalysis){
 sections.forEach(function(sec){
-var d=sa[sec.key];if(!d)return;
-h+='<div class="sr-sec"><h5>'+sec.title+': '+(d.sectionName||'')+'</h5>';
+var d=data.sectionAnalysis[sec.key];if(!d)return;
+h+='<div class="sr-sec">';
+h+='<h5>'+sec.title+': '+(d.sectionName||'')+'</h5>';
 if(d.sectionSummary)h+='<p>'+d.sectionSummary+'</p>';
 if(d.detailedScores){
 Object.keys(d.detailedScores).forEach(function(k){
 var v=d.detailedScores[k]||0;var cls=v>=70?'bh':v>=40?'bm':'bl-c';
 var label=k.replace(/_/g,' ');
-h+='<div class="bar-row"><span class="bl">'+label+'</span><div class="bb"><div class="bf '+cls+'" style="width:'+v+'%"></div></div><span class="bv">'+v+'</span></div>';
-});}
-h+='</div>';
-});
+h+='<div class="bar-row"><span class="bl">'+label+'</span><div class="bb"><div class="bf '+cls+'" style="width:'+v+'%"></div></div><span class="bv">'+v+'</span></div>';});}
+h+='</div>';});}
 
-// 재분석 버튼
-h+='<div style="text-align:center;margin-top:16px"><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="svRerun(\''+sid+'\')">🔄 재분석 실행</button></div>';
-h+='</div>';
-$('sv-result').innerHTML=h;
-}catch(e){$('sv-result').innerHTML='<p style="color:var(--er)">결과 파싱 오류: '+e.message+'</p>';}}
+$('sv-result').innerHTML=h;}
 
-async function svRerun(sid){
+// ★ 검사 시작 (survey_input.html 동작 재현)
+async function svStartNew(){
+sh('문항 로드 중...');
+var r=await gA('tp_counsel_surveyQuestions',{type:SV.surveyType,token:S.tk});hd();
+if(!r.ok){ts(r.error,'er');return;}
+SV.questions=r.questions||[];
+if(SV.questions.length===0){alert('문항이 없습니다. [RAW] 성향응답 탭의 1행(헤더)에 문항 텍스트를 확인해주세요.');return;}
+SV.answers={};SV.page=0;
+svShowMode('input');svRenderQPage();}
+
+function svRenderQPage(){
+var start=SV.page*SV.perPage;var end=Math.min(start+SV.perPage,SV.questions.length);
+var totalPages=Math.ceil(SV.questions.length/SV.perPage);
+var isElem=SV.surveyType==='elementary';
+var labels=isElem?['①<br>전혀<br>아니야','②<br>별로<br>아니야','③<br>보통<br>이야','④<br>자주<br>그래','⑤<br>항상<br>그래']:['①<br>전혀<br>아니다','②<br>그렇지<br>않다','③<br>보통<br>이다','④<br>그렇다','⑤<br>매우<br>그렇다'];
+var h='';
+for(var i=start;i<end;i++){
+var q=SV.questions[i];var isAns=SV.answers[q.index]>0;
+h+='<div class="sv-q-card'+(isAns?' sv-answered':'')+'" id="sqi-'+q.index+'">';
+h+='<div class="q-text"><span style="color:var(--ac);font-weight:700">Q'+q.index+'.</span> '+esc(q.text)+'</div>';
+h+='<div class="q-opts">';
+for(var v=1;v<=5;v++){h+='<div class="q-opt'+(SV.answers[q.index]===v?' sel':'')+'" data-qi="'+q.index+'" data-v="'+v+'" onclick="svAnswer('+q.index+','+v+')">'+labels[v-1]+'</div>';}
+h+='</div></div>';}
+$('sv-questions').innerHTML=h;
+// progress
+var answered=Object.keys(SV.answers).length;
+var pct=SV.questions.length>0?Math.round(answered/SV.questions.length*100):0;
+$('sv-fill').style.width=pct+'%';
+$('sv-prog-text').textContent='응답: '+answered+' / '+SV.questions.length;
+$('sv-prog-pct').textContent=pct+'%';
+// nav
+$('sv-page-info').textContent=(SV.page+1)+' / '+totalPages;
+$('sv-prev').style.display=SV.page>0?'':'none';
+$('sv-next').style.display=SV.page<totalPages-1?'':'none';
+$('sv-submit').style.display=SV.page===totalPages-1?'':'none';
+$('sv-submit').disabled=answered<SV.questions.length;
+window.scrollTo(0,$('sv-input-mode').offsetTop);}
+
+// ★ 응답 선택 — DOM 직접 업데이트 + 자동 스크롤 (survey_input.html 동작)
+function svAnswer(qIndex,value){
+SV.answers[qIndex]=value;
+// 해당 문항 버튼만 업데이트 (전체 리렌더 없이)
+var item=document.getElementById('sqi-'+qIndex);
+if(item){
+item.classList.add('sv-answered');
+item.querySelectorAll('.q-opt').forEach(function(btn){
+btn.classList.toggle('sel',parseInt(btn.dataset.v)===value);});}
+// progress 업데이트
+var answered=Object.keys(SV.answers).length;
+var pct=SV.questions.length>0?Math.round(answered/SV.questions.length*100):0;
+$('sv-fill').style.width=pct+'%';
+$('sv-prog-text').textContent='응답: '+answered+' / '+SV.questions.length;
+$('sv-prog-pct').textContent=pct+'%';
+$('sv-submit').disabled=answered<SV.questions.length;
+// ★ 자동 다음 미응답 문항 스크롤
+var start=SV.page*SV.perPage;var end=Math.min(start+SV.perPage,SV.questions.length);
+for(var i=start;i<end;i++){
+if(!SV.answers[SV.questions[i].index]){
+var nextItem=document.getElementById('sqi-'+SV.questions[i].index);
+if(nextItem)nextItem.scrollIntoView({behavior:'smooth',block:'center'});
+return;}}}
+
+function svNext(){SV.page++;svRenderQPage();}
+function svPrev(){SV.page--;svRenderQPage();}
+
+async function svSubmit(){
+var answered=Object.keys(SV.answers).length;
+if(answered<SV.questions.length){if(!confirm((SV.questions.length-answered)+'개 미응답 문항이 있습니다. 제출하시겠습니까?'))return;}
+var s=SV.students.find(function(x){return x.student_id===SV.studentId;});
+if(!confirm((s?s.name:'')+'학생의 성향검사를 제출하시겠습니까?\n제출 후 자동으로 AI 분석이 실행됩니다.'))return;
+// 응답 배열 구성
+var answerArray=[];
+for(var i=0;i<SV.questions.length;i++){answerArray.push(SV.answers[SV.questions[i].index]||0);}
+sh('Gemini AI 분석 중... (최대 1~2분 소요)');
+var r=await pA({action:'tp_counsel_surveySubmit',token:S.tk,data:{studentId:SV.studentId,surveyType:SV.surveyType,answers:answerArray}});
+hd();
+if(r.ok){
+ts(r.message,'ok');
+svShowMode('view');
+$('sv-info-card').innerHTML='<div class="form-card" style="text-align:center;padding:24px"><div style="font-size:40px;margin-bottom:8px">✅</div><p style="font-size:16px;font-weight:700">'+r.message+'</p></div>';
+loadSvStudents();
+svLoadResult(SV.studentId);
+}else{ts(r.error,'er');}}
+
+// 분석 실행 (응답 데이터 없이 기존 데이터로)
+async function svRunAnalysis(){
+sh('Gemini 분석 중... (1~2분 소요)');
+var r=await pA({action:'tp_counsel_surveyRerun',token:S.tk,studentId:SV.studentId});hd();
+if(r.ok){ts(r.message,'ok');loadSvStudents();}else{ts(r.error,'er');}}
+
+async function svRerun(){
 if(!confirm('성향검사를 재분석하시겠습니까?\nGemini API를 다시 호출합니다.'))return;
 sh('Gemini 재분석 중... (1~2분 소요)');
-var r=await pA({action:'tp_counsel_surveyRerun',token:S.tk,studentId:sid});hd();
-if(r.ok){ts(r.message,'ok');svViewResult(sid);}else{ts(r.error,'er');}}
+var r=await pA({action:'tp_counsel_surveyRerun',token:S.tk,studentId:SV.studentId});hd();
+if(r.ok){ts(r.message,'ok');loadSvStudents();svLoadResult(SV.studentId);}else{ts(r.error,'er');}}
 
 // ═══ 레벨테스트 ═══
 var LT={students:[],answerKey:null,gradeResult:null};

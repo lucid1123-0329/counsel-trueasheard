@@ -178,31 +178,21 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 <div class="side-hd"><h2>강동의 <span>명불허전</span></h2><p>신규 상담 관리 시스템</p></div>
 <div class="side-user"><div class="av" id="uAv">?</div><span id="uNm">—</span></div>
 <nav id="sNav">
-<div class="nav-g">관리</div>
-<div class="ni on" data-p="p-dash" onclick="nav('p-dash')">대시보드</div>
-<div class="ni" data-p="p-consult" onclick="nav('p-consult')">신규 상담 접수</div>
-<div class="nav-g">분석</div>
-<div class="ni" data-p="p-survey" onclick="nav('p-survey')">성향검사</div>
-<div class="ni" data-p="p-lt" onclick="nav('p-lt')">레벨테스트</div>
-<div class="ni" data-p="p-analysis" onclick="nav('p-analysis')">분석리포트</div>
-<div class="nav-g">외부 링크</div>
+<div class="ni on" data-p="p-consult" onclick="nav('p-consult')">📋 상담접수</div>
+<div class="ni" data-p="p-survey" onclick="nav('p-survey')">📝 성향검사</div>
+<div class="ni" data-p="p-lt" onclick="nav('p-lt')">🧪 레벨테스트</div>
+<div class="ni" data-p="p-analysis" onclick="nav('p-analysis')">📊 분석/리포트</div>
+<div class="nav-g">바로가기</div>
 <div class="ni" onclick="window.open('https://teacher.trueasheard.com','_blank')">강사 포털 ↗</div>
+<div class="ni" onclick="window.open('https://go.trueasheard.com','_blank')">학습 관리 상담 ↗</div>
 </nav>
 <div class="side-ft"><button onclick="doLogout()">↩ 로그아웃</button></div>
 </aside>
-<div class="mbar" id="mbar"><button onclick="tglSide()">☰</button><span id="mbarT">대시보드</span></div>
+<div class="mbar" id="mbar"><button onclick="tglSide()">☰</button><span id="mbarT">상담접수</span></div>
 <div class="main">
 
-<!-- 대시보드 -->
-<div class="pg on" id="p-dash">
-<div class="page-h">대시보드</div>
-<p class="page-sub">신규 상담 파이프라인 현황</p>
-<div class="pipe" id="pipeCards"></div>
-<div class="tw"><table class="tb" id="dashTbl"><thead><tr><th>이름</th><th>학년</th><th>학교</th><th>상태</th><th>성향</th><th>영어LT</th><th>수학LT</th><th>분석</th><th>접수일</th></tr></thead><tbody id="dashBody"></tbody></table></div>
-</div>
-
-<!-- 신규 상담 접수 -->
-<div class="pg" id="p-consult">
+<!-- 상담접수 (기본) -->
+<div class="pg on" id="p-consult">
 <div class="page-h">신규 상담 접수</div>
 <p class="page-sub">학생 정보를 입력하여 상담을 접수합니다</p>
 <div class="csl-wrap">
@@ -329,7 +319,7 @@ if(r.ok&&r.teacher&&r.teacher.role==='관리자'){
 S.tk=r.token;S.t=r.teacher;
 $('auth').classList.add('hd');$('app').classList.add('on');
 $('uAv').textContent=r.teacher.name.charAt(0);$('uNm').textContent=r.teacher.name+' (관리자)';
-buildBtab();loadDash();
+buildBtab();nav('p-consult');
 }else if(r.ok){$('aerr').textContent='관리자 계정만 접근할 수 있습니다.';}
 else{$('aerr').textContent=r.error||'로그인 실패';}
 }catch(e){$('aerr').textContent='서버 연결 실패';}
@@ -352,12 +342,12 @@ function tglSide(){const s=$('side'),bd=$('sideBd');const open=!s.classList.cont
 
 function buildBtab(){
 $('btab').innerHTML=[
-{id:'p-dash',ico:'⊞',lb:'대시보드'},
-{id:'p-consult',ico:'＋',lb:'상담접수'},
-{id:'p-survey',ico:'◎',lb:'성향검사'},
-{id:'p-lt',ico:'□',lb:'레벨테스트'},
+{id:'p-consult',ico:'📋',lb:'상담접수'},
+{id:'p-survey',ico:'📝',lb:'성향검사'},
+{id:'p-lt',ico:'🧪',lb:'레벨테스트'},
+{id:'p-analysis',ico:'📊',lb:'분석/리포트'},
 {id:'_more',ico:'☰',lb:'더보기'}
-].map(t=>`<div class="btab-item${t.id==='p-dash'?' on':''}" data-bp="${t.id}" onclick="${t.id==='_more'?'tglSide()':`nav('${t.id}')`}"><div class="btico">${t.ico}</div>${t.lb}</div>`).join('');}
+].map(t=>`<div class="btab-item${t.id==='p-consult'?' on':''}" data-bp="${t.id}" onclick="${t.id==='_more'?'tglSide()':`nav('${t.id}')`}"><div class="btico">${t.ico}</div>${t.lb}</div>`).join('');}
 
 // DASHBOARD
 async function loadDash(){

@@ -1,4 +1,3 @@
-<!-- v3 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -239,7 +238,27 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 <div class="pg on" id="p-consult">
 <div class="page-h">신규 상담 접수</div>
 <p class="page-sub">학생 정보를 입력하여 상담을 접수합니다</p>
-<div class="csl-wrap">
+
+<!-- 선택 화면 -->
+<div id="csl-choose" style="max-width:520px">
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<div onclick="cslOpenPublic()" style="flex:1;min-width:220px;padding:28px 20px;background:var(--sf);border:1.5px solid var(--ln);border-radius:16px;cursor:pointer;text-align:center;transition:.2s;box-shadow:0 2px 12px rgba(44,36,32,.06)" onmouseover="this.style.borderColor='var(--ac)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--ln)';this.style.transform='none'">
+<div style="font-size:32px;margin-bottom:10px">👨‍👩‍👧</div>
+<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">학부모/학생 직접 입력</div>
+<p style="font-size:12px;color:var(--t3);line-height:1.5">학부모 또는 학생이 직접 상담 정보를<br>입력할 수 있는 페이지를 새 탭에서 엽니다</p>
+<div style="margin-top:12px;display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ac);font-weight:600">새 탭에서 열기 ↗</div>
+</div>
+<div onclick="cslShowAdmin()" style="flex:1;min-width:220px;padding:28px 20px;background:var(--sf);border:1.5px solid var(--ln);border-radius:16px;cursor:pointer;text-align:center;transition:.2s;box-shadow:0 2px 12px rgba(44,36,32,.06)" onmouseover="this.style.borderColor='var(--ac)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--ln)';this.style.transform='none'">
+<div style="font-size:32px;margin-bottom:10px">📋</div>
+<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">관리자 직접 입력</div>
+<p style="font-size:12px;color:var(--t3);line-height:1.5">관리자가 상담 내용을 직접 입력하여<br>시스템에 바로 접수합니다</p>
+<div style="margin-top:12px;display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ac);font-weight:600">입력 시작 →</div>
+</div>
+</div>
+</div>
+
+<!-- 관리자 직접 입력 폼 (기본 숨김) -->
+<div class="csl-wrap" id="csl-admin-form" style="display:none">
 <div class="steps" id="cslSteps">
 <div class="step-col"><div class="step-circle active" id="sc-1">1</div><div class="step-label active" id="sl-1">기본정보</div></div>
 <div class="step-line" id="sline-1"></div>
@@ -1038,12 +1057,25 @@ ts('상담 접수 완료','ok');
 }else{ts(r.error||'접수 실패','er');$('cslSubmit').disabled=false;}
 }catch(e){hd();ts('서버 오류','er');$('cslSubmit').disabled=false;}}
 
+// 상담접수 — 선택 화면
+function cslOpenPublic(){
+window.open('https://counsel.trueasheard.com/?page=consult','_blank');
+ts('새 탭에서 상담 접수 페이지가 열렸습니다','ok');}
+
+function cslShowAdmin(){
+$('csl-choose').style.display='none';
+$('csl-admin-form').style.display='';
+cslGoTo(1);}
+
 function resetConsult(){
 document.querySelectorAll('#p-consult input[type="text"],#p-consult input[type="tel"],#p-consult textarea').forEach(e=>{e.value='';});
 document.querySelectorAll('#p-consult select').forEach(e=>{e.selectedIndex=0;});
 $('f-consent').checked=false;$('hs-section').classList.remove('show');
 $('cslResult').classList.remove('show');$('cslSteps').style.display='';$('cslBtns').style.display='';
-$('cslSubmit').disabled=false;cslGoTo(1);}
+$('cslSubmit').disabled=false;
+// 선택 화면으로 복귀
+$('csl-admin-form').style.display='none';
+$('csl-choose').style.display='';}
 </script>
 </body>
 </html>

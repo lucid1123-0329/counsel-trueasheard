@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>명불허전학원 · 상담 관리</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--f:'Noto Sans KR',sans-serif;--bg:#f5f0eb;--sf:#fff;--ink:#2c2420;--t2:#4a3f38;--t3:#7a6e64;--t4:#9b8f84;--ln:#e0d8d0;--lnl:#efe8e0;--ac:#1e3a6e;--acbg:#f0f4ff;--ok:#16a34a;--okbg:#f0fdf4;--wn:#f59e0b;--wnbg:#fffbeb;--er:#dc2626;--erbg:#fef8f6;--sw:240px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:15px/1.6 var(--f);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:0;background:0}input,select,textarea{font:inherit}
+
+/* AUTH */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#1a1440 0%,#1e3a6e 50%,#234878 100%)}
+.auth.hd{display:none}
+.auth-card{width:360px;background:var(--sf);border-radius:16px;padding:36px;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo h1{font-family:'Playfair Display',serif;font-size:22px;letter-spacing:-.5px;color:var(--ink)}
+.auth-logo h1 span{color:#fbbf24}
+.auth-logo p{font-size:12px;color:var(--t3);margin-top:4px}
+.auth-f{margin-bottom:16px}
+.auth-f label{display:block;font-size:13px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.auth-f input{width:100%;padding:12px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5;outline:0;transition:.2s}
+.auth-f input:focus{border-color:var(--ac);background:var(--sf);box-shadow:0 0 0 3px rgba(30,58,110,.08)}
+.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,#1e3a6e,#234878);color:#fff;border-radius:12px;font-size:15px;font-weight:600;transition:.2s;box-shadow:0 4px 12px rgba(30,58,110,.25)}
+.auth-btn:hover{box-shadow:0 6px 20px rgba(30,58,110,.35);transform:translateY(-1px)}
+.auth-err{font-size:12px;color:var(--er);text-align:center;margin-top:12px;min-height:1em}
+
+/* APP SHELL */
+.app{display:none}.app.on{display:flex;min-height:100vh}
+.side{width:var(--sw);background:var(--sf);border-right:1px solid var(--ln);position:fixed;top:0;left:0;bottom:0;z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .2s}
+.side-hd{padding:18px 16px;border-bottom:1px solid var(--ln)}
+.side-hd h2{font-family:'Playfair Display',serif;font-size:16px;letter-spacing:-.3px}
+.side-hd h2 span{color:#fbbf24}
+.side-hd p{font-size:11px;color:var(--t4);margin-top:2px}
+.side-user{padding:12px 16px;border-bottom:1px solid var(--ln);font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px}
+.side-user .av{width:24px;height:24px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+nav{flex:1;padding:8px 0}
+.ni{display:block;padding:9px 16px;font-size:14px;color:var(--t2);cursor:pointer;transition:.1s;border-left:2px solid transparent}
+.ni:hover{background:#faf8f5}.ni.on{color:var(--ink);font-weight:600;border-left-color:var(--ac);background:#faf8f5}
+.nav-g{padding:0 16px;margin-top:16px;margin-bottom:4px;font-size:10px;font-weight:700;color:var(--t4);letter-spacing:.06em;text-transform:uppercase}
+.side-ft{padding:12px 16px;border-top:1px solid var(--ln)}.side-ft button{padding:6px 0;font-size:13px;color:var(--t3)}.side-ft button:hover{color:var(--ink)}
+.main{flex:1;margin-left:var(--sw)}
+
+/* PAGES */
+.pg{display:none;padding:28px 32px 80px;max-width:960px;margin:0 auto}.pg.on{display:block}
+.page-h{font-size:22px;font-weight:700;letter-spacing:-.03em}.page-sub{font-size:13px;color:var(--t3);margin-top:2px;margin-bottom:24px}
+
+/* PIPE CARDS */
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.pipe-c{background:var(--sf);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--ln)}
+.pipe-v{font-size:28px;font-weight:800;line-height:1.1}.pipe-l{font-size:11px;color:var(--t3);margin-top:4px;font-weight:500}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+.tb th{padding:8px 12px;text-align:left;font-weight:600;font-size:11px;color:var(--t3);border-bottom:1px solid var(--ln);letter-spacing:.02em}
+.tb td{padding:8px 12px;border-bottom:1px solid var(--lnl)}
+.tb tr:hover{background:#faf8f5}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;font-size:11px;font-weight:600}
+.chip-ok{background:var(--okbg);color:var(--ok)}.chip-wn{background:var(--wnbg);color:#92400e}.chip-ac{background:var(--acbg);color:var(--ac)}.chip-n{background:#f5f0eb;color:var(--t4)}.chip-er{background:var(--erbg);color:var(--er)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 16px;border-radius:8px;font-size:13px;font-weight:500;transition:.12s}
+.btn-p{background:var(--ink);color:#fff}.btn-p:hover{opacity:.85}
+.btn-g{background:#f5f0eb;color:var(--t2);border:1px solid var(--ln)}.btn-g:hover{background:var(--ln)}
+.btn-sm{height:28px;padding:0 12px;font-size:12px}
+
+/* CONSULT FORM — consult_public.html 디자인 적용 */
+.csl-wrap{max-width:520px}
+.steps{display:flex;align-items:center;justify-content:center;gap:0;padding:12px 0 20px}
+.step-col{display:flex;flex-direction:column;align-items:center}
+.step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid var(--ln);color:var(--t4);background:var(--sf);transition:.3s}
+.step-circle.active{border-color:var(--ac);color:#fff;background:var(--ac);box-shadow:0 2px 8px rgba(30,58,110,.3)}
+.step-circle.done{border-color:var(--ok);color:#fff;background:var(--ok)}
+.step-label{font-size:10px;color:var(--t4);margin-top:4px;transition:.3s}
+.step-label.active{color:var(--ac);font-weight:600}
+.step-label.done{color:var(--ok)}
+.step-line{width:40px;height:2px;background:var(--ln);margin:0 4px;margin-bottom:16px;transition:.3s}
+.step-line.done{background:var(--ok)}
+
+.form-card{background:var(--sf);border-radius:16px;padding:24px;margin-bottom:12px;box-shadow:0 2px 12px rgba(44,36,32,.06);border:1px solid rgba(0,0,0,.04)}
+.form-title{font-size:17px;font-weight:700;color:#1a1440;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.form-subtitle{font-size:12px;color:var(--t4);margin-bottom:20px}
+.csl-sec{display:none}.csl-sec.active{display:block;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.field label .req{color:#c2410c;font-size:11px}
+.field input,.field textarea,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5;color:var(--ink);transition:.25s;outline:0;-webkit-appearance:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ac);background:var(--sf);box-shadow:0 0 0 3px rgba(30,58,110,.08)}
+.field textarea{resize:vertical;min-height:72px}
+.field .hint{font-size:11px;color:var(--t4);margin-top:4px}
+.field.error input,.field.error select,.field.error textarea{border-color:var(--er);background:var(--erbg)}
+.field .error-msg{font-size:11px;color:var(--er);margin-top:3px;display:none}
+.field.error .error-msg{display:block}
+.row{display:flex;gap:12px}.row>.field{flex:1}
+.hs-section{display:none;padding:14px;background:linear-gradient(135deg,#fffbf0,#fff7e6);border:1px solid #f0dfa8;border-radius:12px;margin-bottom:16px}
+.hs-section.show{display:block;animation:fadeIn .3s}
+.hs-title{font-size:13px;font-weight:600;color:#92400e;margin-bottom:10px}
+.mock-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mock-grid .field{margin-bottom:6px}.mock-grid .field label{font-size:12px}
+.consent-box{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:linear-gradient(135deg,#f0f4ff,#e8eefb);border:1px solid #c7d5ed;border-radius:12px;margin:16px 0 8px}
+.consent-box input[type="checkbox"]{margin-top:2px;width:18px;height:18px;flex-shrink:0;accent-color:var(--ac)}
+.consent-box span{font-size:12px;color:#3d4a5c;line-height:1.5}
+.consent-box strong{color:var(--ac)}
+.summary-card{padding:16px;background:#faf8f5;border-radius:12px;border:1px solid var(--lnl);font-size:13px;line-height:1.8}
+.summary-card .item{display:flex;padding:4px 0;border-bottom:1px solid var(--lnl)}
+.summary-card .item:last-child{border-bottom:none}
+.summary-card .lbl{min-width:90px;font-weight:600;color:var(--t3);font-size:12px}
+.summary-card .val{flex:1}
+
+.csl-btns{display:flex;gap:10px;margin-top:16px}
+.csl-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:.25s}
+.csl-btn-prev{background:var(--lnl);color:var(--t2)}.csl-btn-prev:hover{background:var(--ln)}
+.csl-btn-next{background:linear-gradient(135deg,#1e3a6e,#234878);color:#fff;box-shadow:0 4px 12px rgba(30,58,110,.25)}.csl-btn-next:hover{box-shadow:0 6px 20px rgba(30,58,110,.35);transform:translateY(-1px)}
+.csl-btn-submit{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.3)}.csl-btn-submit:hover{box-shadow:0 6px 20px rgba(22,163,74,.4);transform:translateY(-1px)}
+.csl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.csl-result{display:none;text-align:center;padding:48px 24px}
+.csl-result.show{display:block;animation:fadeIn .5s}
+.csl-result .icon{font-size:56px;margin-bottom:16px}
+.csl-result h3{font-size:22px;font-weight:700;color:#1a1440;margin-bottom:6px}
+.csl-result p{font-size:14px;color:var(--t3);margin-bottom:20px;line-height:1.6}
+.csl-result .sid{font-family:'SF Mono','Fira Code',monospace;background:var(--lnl);padding:10px 20px;border-radius:8px;font-size:13px;display:inline-block;color:var(--t2)}
+
+/* LOADING + TOAST */
+.ov{display:none;position:fixed;inset:0;background:rgba(255,255,255,.88);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.ov.show{display:flex}
+.spin{width:40px;height:40px;border:3px solid var(--ln);border-top-color:var(--ac);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ov span{font-size:14px;color:var(--t3)}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:600;transform:translateX(120%);transition:transform .3s;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.toast.show{transform:translateX(0)}.toast-ok{background:var(--okbg);color:#15803d;border:1px solid #bbf7d0}.toast-er{background:var(--erbg);color:#b91c1c;border:1px solid #fecaca}
+
+/* MOBILE */
+.mbar{display:none;align-items:center;gap:8px;padding:10px 16px;background:var(--sf);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:100}
+.mbar button{font-size:18px}.mbar span{font-size:14px;font-weight:600}
+.side-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:199}
+.btab{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--ln);z-index:300;padding:4px 0 env(safe-area-inset-bottom,4px);justify-content:space-around}
+.btab-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;color:var(--t3);font-size:9px;font-weight:500;cursor:pointer;flex:1;text-align:center}.btab-item.on{color:var(--ink)}.btab-item .btico{font-size:18px}
+
+@media(max-width:768px){
+.side{transform:translateX(-100%);width:260px}.side.op{transform:translateX(0)}
+.main{margin-left:0}
+.mbar{display:flex}
+.btab{display:flex!important}
+.pg{padding:16px 14px 120px}
+.pipe{grid-template-columns:1fr 1fr;gap:6px}.pipe-v{font-size:22px}
+.row{flex-direction:column;gap:0}
+.csl-wrap{max-width:100%}
+.page-h{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth" id="auth">
+<div class="auth-card">
+<div class="auth-logo">
+<h1>강동의 <span>명불허전</span>학원</h1>
+<p>신규 상담 관리 시스템</p>
+</div>
+<div class="auth-f"><label>이름</label><input type="text" id="au" placeholder="관리자 이름" autofocus></div>
+<div class="auth-f"><label>비밀번호</label><input type="password" id="ap" placeholder="비밀번호"></div>
+<button class="auth-btn" id="abtn" onclick="doLogin()">로그인</button>
+<div class="auth-err" id="aerr"></div>
+</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+<div class="side-bd" id="sideBd" onclick="$('side').classList.remove('op');this.style.display='none'"></div>
+<aside class="side" id="side">
+<div class="side-hd"><h2>강동의 <span>명불허전</span></h2><p>신규 상담 관리 시스템</p></div>
+<div class="side-user"><div class="av" id="uAv">?</div><span id="uNm">—</span></div>
+<nav id="sNav">
+<div class="nav-g">관리</div>
+<div class="ni on" data-p="p-dash" onclick="nav('p-dash')">대시보드</div>
+<div class="ni" data-p="p-consult" onclick="nav('p-consult')">신규 상담 접수</div>
+<div class="nav-g">분석</div>
+<div class="ni" data-p="p-survey" onclick="nav('p-survey')">성향검사</div>
+<div class="ni" data-p="p-lt" onclick="nav('p-lt')">레벨테스트</div>
+<div class="ni" data-p="p-analysis" onclick="nav('p-analysis')">분석리포트</div>
+<div class="nav-g">외부 링크</div>
+<div class="ni" onclick="window.open('https://teacher.trueasheard.com','_blank')">강사 포털 ↗</div>
+</nav>
+<div class="side-ft"><button onclick="doLogout()">↩ 로그아웃</button></div>
+</aside>
+<div class="mbar" id="mbar"><button onclick="tglSide()">☰</button><span id="mbarT">대시보드</span></div>
+<div class="main">
+
+<!-- 대시보드 -->
+<div class="pg on" id="p-dash">
+<div class="page-h">대시보드</div>
+<p class="page-sub">신규 상담 파이프라인 현황</p>
+<div class="pipe" id="pipeCards"></div>
+<div class="tw"><table class="tb" id="dashTbl"><thead><tr><th>이름</th><th>학년</th><th>학교</th><th>상태</th><th>성향</th><th>영어LT</th><th>수학LT</th><th>분석</th><th>접수일</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+</div>
+
+<!-- 신규 상담 접수 -->
+<div class="pg" id="p-consult">
+<div class="page-h">신규 상담 접수</div>
+<p class="page-sub">학생 정보를 입력하여 상담을 접수합니다</p>
+<div class="csl-wrap">
+<div class="steps" id="cslSteps">
+<div class="step-col"><div class="step-circle active" id="sc-1">1</div><div class="step-label active" id="sl-1">기본정보</div></div>
+<div class="step-line" id="sline-1"></div>
+<div class="step-col"><div class="step-circle" id="sc-2">2</div><div class="step-label" id="sl-2">학습정보</div></div>
+<div class="step-line" id="sline-2"></div>
+<div class="step-col"><div class="step-circle" id="sc-3">3</div><div class="step-label" id="sl-3">확인·접수</div></div>
+</div>
+
+<!-- STEP 1 -->
+<div class="csl-sec active" id="cs-1"><div class="form-card">
+<div class="form-title">👤 학생 기본 정보</div>
+<div class="form-subtitle">상담에 필요한 기본 사항을 입력해 주세요</div>
+<div class="row">
+<div class="field"><label>학생 이름 <span class="req">*</span></label><input type="text" id="f-name" placeholder="홍길동"><div class="error-msg">학생 이름을 입력해주세요</div></div>
+<div class="field"><label>학년 <span class="req">*</span></label><select id="f-grade"><option value="">선택</option></select><div class="error-msg">학년을 선택해주세요</div></div>
+</div>
+<div class="row">
+<div class="field"><label>학생 전화번호</label><input type="tel" id="f-phone" placeholder="010-0000-0000"></div>
+<div class="field"><label>부모님 연락처 <span class="req">*</span></label><input type="tel" id="f-parent-phone" placeholder="010-0000-0000"><div class="hint">상담 안내 및 결과 전송용</div><div class="error-msg">부모님 연락처를 입력해주세요</div></div>
+</div>
+<div class="row">
+<div class="field"><label>학교명 <span class="req">*</span></label><input type="text" id="f-school" placeholder="강동중학교"><div class="error-msg">학교명을 입력해주세요</div></div>
+<div class="field"><label>주소 <span class="req">*</span></label><input type="text" id="f-address" placeholder="강동구 상일동"><div class="error-msg">주소를 입력해주세요</div></div>
+</div>
+</div></div>
+
+<!-- STEP 2 -->
+<div class="csl-sec" id="cs-2"><div class="form-card">
+<div class="form-title">📚 학습 정보</div>
+<div class="form-subtitle">현재 학습 상황과 상담 희망 내용을 알려주세요</div>
+<div class="field"><label>학교 성적</label><textarea id="f-grades" placeholder="예: 국어 상(81~90점), 영어 중(71~80점)&#10;또는 내신 등급: 국어 3등급, 영어 4등급"></textarea><div class="hint">과목별 성적이나 내신 등급을 자유롭게 작성</div></div>
+<div class="row">
+<div class="field"><label>상담 희망 과목 <span class="req">*</span></label><select id="f-subject"><option value="">선택</option></select><div class="error-msg">과목을 선택해주세요</div></div>
+<div class="field"><label>유입 경로</label><select id="f-route"><option value="">선택</option></select></div>
+</div>
+<div class="field"><label>희망 목표 대학 / 진학 목표</label><input type="text" id="f-target-univ" placeholder="예: 서울대, 연고대, 특목고 등"><div class="hint">초등/중학생도 장기 목표가 있으면 입력</div></div>
+<div class="field"><label>상담 사유</label><textarea id="f-reason" placeholder="예: 수학 성적이 떨어져서, 기초를 잡고 싶어서"></textarea></div>
+<div class="field"><label>희망 사항</label><textarea id="f-wants" placeholder="예: 소수정원 수업 희망, 자기주도학습 관리 원함"></textarea></div>
+<div class="hs-section" id="hs-section">
+<div class="hs-title">📝 모의고사 성적 (고등학생)</div>
+<div class="mock-grid">
+<div class="field"><label>국어</label><select id="f-mock-korean"><option value="">선택</option><option>1등급</option><option>2등급</option><option>3등급</option><option>4등급</option><option>5등급</option><option>6등급 이하</option><option>미응시</option></select></div>
+<div class="field"><label>영어</label><select id="f-mock-english"><option value="">선택</option><option>1등급</option><option>2등급</option><option>3등급</option><option>4등급</option><option>5등급</option><option>6등급 이하</option><option>미응시</option></select></div>
+<div class="field"><label>수학</label><select id="f-mock-math"><option value="">선택</option><option>1등급</option><option>2등급</option><option>3등급</option><option>4등급</option><option>5등급</option><option>6등급 이하</option><option>미응시</option></select></div>
+<div class="field"><label>과학</label><select id="f-mock-science"><option value="">선택</option><option>1등급</option><option>2등급</option><option>3등급</option><option>4등급</option><option>5등급</option><option>6등급 이하</option><option>미응시</option></select></div>
+</div>
+</div>
+</div></div>
+
+<!-- STEP 3 -->
+<div class="csl-sec" id="cs-3"><div class="form-card">
+<div class="form-title">✅ 입력 내용 확인</div>
+<div class="form-subtitle">입력하신 내용을 확인하시고 접수해 주세요</div>
+<div class="summary-card" id="cslSummary"></div>
+<div class="consent-box">
+<input type="checkbox" id="f-consent">
+<span>개인정보(이름, 연락처, 학교, 학년, 성적 등)는 상담 및 학습 분석 목적으로만 사용되며 제3자에게 제공하지 않습니다. <strong>개인정보 수집·이용에 동의합니다.</strong></span>
+</div>
+</div></div>
+
+<!-- RESULT -->
+<div class="csl-result" id="cslResult">
+<div class="icon">🎉</div>
+<h3>상담 접수가 완료되었습니다!</h3>
+<p id="cslResultMsg">빠른 시일 내에 연락드리겠습니다.</p>
+<div class="sid" id="cslResultSid"></div>
+<br><br><button class="btn btn-p" onclick="resetConsult()">새 상담 접수</button>
+</div>
+
+<div class="csl-btns" id="cslBtns">
+<button class="csl-btn csl-btn-prev" id="cslPrev" onclick="cslPrevStep()" style="display:none">이전</button>
+<button class="csl-btn csl-btn-next" id="cslNext" onclick="cslNextStep()">다음 단계</button>
+<button class="csl-btn csl-btn-submit" id="cslSubmit" onclick="cslSubmitForm()" style="display:none">상담 접수하기</button>
+</div>
+</div>
+</div>
+
+<!-- 성향검사 (Phase 2) -->
+<div class="pg" id="p-survey"><div class="page-h">성향검사</div><p class="page-sub">학생별 성향검사 현황 및 결과 조회</p><p style="color:var(--t3)">Phase 2에서 구현 예정</p></div>
+<!-- 레벨테스트 (Phase 2) -->
+<div class="pg" id="p-lt"><div class="page-h">레벨테스트</div><p class="page-sub">레벨테스트 채점 현황 및 결과 조회</p><p style="color:var(--t3)">Phase 2에서 구현 예정</p></div>
+<!-- 분석리포트 (Phase 3) -->
+<div class="pg" id="p-analysis"><div class="page-h">분석리포트</div><p class="page-sub">종합분석 결과 및 리포트 링크</p><p style="color:var(--t3)">Phase 3에서 구현 예정</p></div>
+
+</div><!-- main -->
+</div><!-- app -->
+
+<div class="btab" id="btab"></div>
+
+<!-- LOADING -->
+<div class="ov" id="ov"><div class="spin"></div><span id="ovMsg">로딩 중...</span></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API='/api/gs';
+let S={tk:'',t:null};
+
+function $(id){return document.getElementById(id);}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function sh(m){$('ovMsg').textContent=m||'로딩 중...';$('ov').classList.add('show');}
+function hd(){$('ov').classList.remove('show');}
+function ts(m,type){const t=$('toast');t.textContent=m;t.className='toast show toast-'+(type||'ok');setTimeout(()=>t.classList.remove('show'),3000);}
+
+async function gA(action,params){
+const qs=new URLSearchParams(Object.assign({action},params||{}));
+const r=await fetch(API+'?'+qs);return r.json();}
+async function pA(data){
+const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json();}
+
+// AUTH
+$('ap').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+$('au').addEventListener('keydown',e=>{if(e.key==='Enter')$('ap').focus();});
+
+async function doLogin(){
+const u=$('au').value.trim(),p=$('ap').value.trim();
+if(!u||!p){$('aerr').textContent='이름과 비밀번호를 입력해주세요.';return;}
+$('abtn').disabled=true;$('abtn').textContent='로그인 중...';$('aerr').textContent='';
+try{
+const r=await gA('tp_login',{name:u,pw:p});
+if(r.ok&&r.role==='관리자'){
+S.tk=r.token;S.t=r;
+$('auth').classList.add('hd');$('app').classList.add('on');
+$('uAv').textContent=u.charAt(0);$('uNm').textContent=u+' (관리자)';
+buildBtab();loadDash();
+}else if(r.ok){$('aerr').textContent='관리자 계정만 접근할 수 있습니다.';}
+else{$('aerr').textContent=r.error||'로그인 실패';}
+}catch(e){$('aerr').textContent='서버 연결 실패';}
+$('abtn').disabled=false;$('abtn').textContent='로그인';}
+
+function doLogout(){S={tk:'',t:null};$('app').classList.remove('on');$('auth').classList.remove('hd');$('au').value='';$('ap').value='';}
+
+// NAV
+function nav(p){
+document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+const pg=$(p);if(pg)pg.classList.add('on');
+const ni=document.querySelector(`.ni[data-p="${p}"]`);if(ni)ni.classList.add('on');
+$('mbarT').textContent=ni?ni.textContent.trim():'';
+$('side').classList.remove('op');$('sideBd').style.display='none';
+document.querySelectorAll('.btab-item').forEach(b=>b.classList.toggle('on',b.dataset.bp===p));
+if(p==='p-dash')loadDash();}
+
+function tglSide(){const s=$('side'),bd=$('sideBd');const open=!s.classList.contains('op');s.classList.toggle('op');bd.style.display=open?'block':'none';}
+
+function buildBtab(){
+$('btab').innerHTML=[
+{id:'p-dash',ico:'⊞',lb:'대시보드'},
+{id:'p-consult',ico:'＋',lb:'상담접수'},
+{id:'p-survey',ico:'◎',lb:'성향검사'},
+{id:'p-lt',ico:'□',lb:'레벨테스트'},
+{id:'_more',ico:'☰',lb:'더보기'}
+].map(t=>`<div class="btab-item${t.id==='p-dash'?' on':''}" data-bp="${t.id}" onclick="${t.id==='_more'?'tglSide()':`nav('${t.id}')`}"><div class="btico">${t.ico}</div>${t.lb}</div>`).join('');}
+
+// DASHBOARD
+async function loadDash(){
+sh('대시보드 로딩...');
+try{const r=await gA('tp_counselDashboard',{token:S.tk});hd();
+if(!r.ok){ts(r.error,'er');return;}
+const p=r.pipeline;
+$('pipeCards').innerHTML=[
+{l:'접수',v:p['접수']||0,c:'var(--t3)'},
+{l:'성향완료',v:p['성향완료']||0,c:'var(--wn)'},
+{l:'레벨완료',v:p['레벨완료']||0,c:'var(--ac)'},
+{l:'분석완료',v:p['분석완료']||0,c:'var(--ok)'}
+].map(x=>`<div class="pipe-c"><div class="pipe-v" style="color:${x.c}">${x.v}</div><div class="pipe-l">${x.l}</div></div>`).join('');
+
+$('dashBody').innerHTML=(r.recent||[]).map(s=>`<tr>
+<td style="font-weight:500">${esc(s.name)}</td><td>${s.grade}</td><td>${s.school||''}</td>
+<td><span class="chip chip-${s.status==='분석완료'?'ok':s.status==='레벨완료'?'ac':s.status==='성향완료'?'wn':'n'}">${s.status}</span></td>
+<td>${s.hasSurvey?'<span class="chip chip-ok" style="font-size:10px">완료</span>':'<span style="color:var(--t4)">—</span>'}</td>
+<td>${s.hasEngLT?'<span class="chip chip-ok" style="font-size:10px">완료</span>':'<span style="color:var(--t4)">—</span>'}</td>
+<td>${s.hasMathLT?'<span class="chip chip-ok" style="font-size:10px">완료</span>':'<span style="color:var(--t4)">—</span>'}</td>
+<td>${s.hasAnalysis?'<span class="chip chip-ok" style="font-size:10px">완료</span>':'<span style="color:var(--t4)">—</span>'}</td>
+<td style="font-size:12px;color:var(--t3)">${s.created||''}</td></tr>`).join('')||'<tr><td colspan=9 style="text-align:center;padding:20px;color:var(--t3)">접수된 학생이 없습니다</td></tr>';
+}catch(e){hd();ts('로딩 실패','er');}}
+
+// CONSULT FORM — consult_public.html 로직 동일 적용
+var cslStep=1,cslTotal=3;
+(function(){
+['초3','초4','초5','초6','중1','중2','중3','고1','고2','고3'].forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;$('f-grade').appendChild(o);});
+['국어','영어','수학','국어+영어','국어+수학','영어+수학','국어+영어+수학'].forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;$('f-subject').appendChild(o);});
+['네이버 검색','네이버 블로그','네이버 스마트플레이스','지인 소개','전단지/현수막','학교 앞 홍보','기타'].forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;$('f-route').appendChild(o);});
+$('f-grade').addEventListener('change',function(){$('hs-section').classList.toggle('show',this.value.startsWith('고'));});
+})();
+
+function v(id){return $(id).value.trim();}
+
+function cslGoTo(s){
+cslStep=s;
+for(let i=1;i<=cslTotal;i++){
+$('cs-'+i).classList.toggle('active',i===s);
+const sc=$('sc-'+i),sl=$('sl-'+i);
+sc.classList.remove('active','done');sl.classList.remove('active','done');
+if(i<s){sc.classList.add('done');sc.textContent='✓';sl.classList.add('done');}
+else if(i===s){sc.classList.add('active');sc.textContent=i;sl.classList.add('active');}
+else{sc.textContent=i;}
+if(i<cslTotal)$('sline-'+i).classList.toggle('done',i<s);
+}
+$('cslPrev').style.display=s>1?'':'none';
+$('cslNext').style.display=s<cslTotal?'':'none';
+$('cslSubmit').style.display=s===cslTotal?'':'none';
+if(s===3)buildCslSummary();}
+
+function cslValidate(step){
+document.querySelectorAll('.field.error').forEach(f=>f.classList.remove('error'));
+let ok=true;
+function req(id){if(!v(id)){$(id).closest('.field').classList.add('error');ok=false;}}
+if(step===1){req('f-name');req('f-parent-phone');req('f-school');req('f-address');req('f-grade');}
+if(step===2){req('f-subject');}
+return ok;}
+
+function cslNextStep(){if(cslValidate(cslStep))cslGoTo(cslStep+1);}
+function cslPrevStep(){if(cslStep>1)cslGoTo(cslStep-1);}
+
+function buildCslSummary(){
+const items=[['이름',v('f-name')],['학년',v('f-grade')],['전화번호',v('f-phone')||'-'],
+['부모님 연락처',v('f-parent-phone')],['학교',v('f-school')],['주소',v('f-address')],
+['성적',v('f-grades')||'-'],['과목',v('f-subject')],['유입 경로',v('f-route')||'-'],
+['목표 대학',v('f-target-univ')||'-'],['상담 사유',v('f-reason')||'-'],['희망 사항',v('f-wants')||'-']];
+const g=v('f-grade');
+if(g.startsWith('고')){items.push(['모의 국어',v('f-mock-korean')||'-'],['모의 영어',v('f-mock-english')||'-'],['모의 수학',v('f-mock-math')||'-'],['모의 과학',v('f-mock-science')||'-']);}
+$('cslSummary').innerHTML=items.map(it=>`<div class="item"><div class="lbl">${it[0]}</div><div class="val">${esc(it[1])}</div></div>`).join('');}
+
+async function cslSubmitForm(){
+if(!$('f-consent').checked){alert('개인정보 수집·이용에 동의해주세요.');return;}
+$('cslSubmit').disabled=true;sh('접수 처리 중...');
+try{
+const r=await pA({action:'tp_counselSubmit',token:S.tk,formData:{
+name:v('f-name'),phone:v('f-phone'),parent_phone:v('f-parent-phone'),
+address:v('f-address'),school:v('f-school'),grade:v('f-grade'),
+grades:v('f-grades'),consent:true,route:v('f-route'),
+reason:v('f-reason'),subject:v('f-subject'),wants:v('f-wants'),
+target_univ:v('f-target-univ'),
+mock_korean:v('f-mock-korean'),mock_english:v('f-mock-english'),
+mock_math:v('f-mock-math'),mock_science:v('f-mock-science')
+}});
+hd();
+if(r.ok){
+$('cslSteps').style.display='none';$('cslBtns').style.display='none';
+document.querySelectorAll('.csl-sec').forEach(s=>s.classList.remove('active'));
+$('cslResultMsg').textContent=r.message;$('cslResultSid').textContent='접수번호: '+r.studentId;
+$('cslResult').classList.add('show');
+ts('상담 접수 완료','ok');
+}else{ts(r.error||'접수 실패','er');$('cslSubmit').disabled=false;}
+}catch(e){hd();ts('서버 오류','er');$('cslSubmit').disabled=false;}}
+
+function resetConsult(){
+document.querySelectorAll('#p-consult input[type="text"],#p-consult input[type="tel"],#p-consult textarea').forEach(e=>{e.value='';});
+document.querySelectorAll('#p-consult select').forEach(e=>{e.selectedIndex=0;});
+$('f-consent').checked=false;$('hs-section').classList.remove('show');
+$('cslResult').classList.remove('show');$('cslSteps').style.display='';$('cslBtns').style.display='';
+$('cslSubmit').disabled=false;cslGoTo(1);}
+</script>
+</body>
+</html>

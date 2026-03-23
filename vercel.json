@@ -1,16 +1,5 @@
 {
   "version": 2,
-  "headers": [
-    {
-      "source": "/(admin|admin.html)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ],
   "routes": [
     {
       "src": "/favicon.ico",

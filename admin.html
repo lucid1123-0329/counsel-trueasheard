@@ -125,6 +125,37 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 .csl-result h3{font-size:22px;font-weight:700;color:#1a1440;margin-bottom:6px}
 .csl-result p{font-size:14px;color:var(--t3);margin-bottom:20px;line-height:1.6}
 .csl-result .sid{font-family:'SF Mono','Fira Code',monospace;background:var(--lnl);padding:10px 20px;border-radius:8px;font-size:13px;display:inline-block;color:var(--t2)}
+/* SURVEY RESULT */
+.sr-scores{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.sr-sc{text-align:center;padding:14px 6px;background:#faf8f5;border-radius:10px;border:1px solid var(--ln)}
+.sr-sc .val{font-size:26px;font-weight:800;line-height:1}.sr-sc .lbl{font-size:11px;color:var(--t3);margin-top:4px}
+.sr-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sr-card{background:var(--sf);border-radius:12px;padding:14px;border:1px solid var(--ln)}
+.sr-card h5{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sr-card p{font-size:12px;color:var(--t2);line-height:1.7}
+.sr-sec{background:var(--sf);border-radius:12px;padding:14px;border:1px solid var(--ln);margin-bottom:10px}
+.sr-sec h5{font-size:14px;font-weight:700;margin-bottom:4px}.sr-sec p{font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:8px}
+.bar-row{display:flex;align-items:center;padding:3px 0;font-size:12px}
+.bar-row .bl{min-width:80px;color:var(--t3);font-size:11px}
+.bar-row .bb{flex:1;height:6px;background:var(--lnl);border-radius:3px;overflow:hidden;margin:0 8px}
+.bar-row .bf{height:100%;border-radius:3px}.bar-row .bv{min-width:32px;text-align:right;font-weight:600;font-size:11px}
+.bh{background:var(--ok)}.bm{background:var(--wn)}.bl-c{background:var(--er)}
+
+/* LEVEL TEST BREAKDOWN */
+.lt-score-box{text-align:center;padding:16px;background:linear-gradient(135deg,#f0f4ff,#e8eefb);border-radius:12px;border:1px solid #c7d5ed;margin-bottom:12px}
+.lt-score-box .big{font-size:32px;font-weight:800}.lt-score-box .sub{font-size:13px;color:var(--t3);margin-top:2px}
+.bd-section{margin-bottom:12px}
+.bd-section h5{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--lnl)}
+
+/* ANALYSIS REPORT LINK */
+.rpt-link-card{display:flex;align-items:center;gap:16px;padding:20px;background:linear-gradient(135deg,#1e3a6e,#234878);border-radius:14px;color:#fff;cursor:pointer;transition:.2s;margin-top:12px}
+.rpt-link-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(30,58,110,.35)}
+.rpt-link-card .ico{font-size:36px;flex-shrink:0}
+.rpt-link-card .info h4{font-size:16px;font-weight:700;margin-bottom:2px}
+.rpt-link-card .info p{font-size:12px;opacity:.8}
+.token-box{font-family:'SF Mono','Fira Code',monospace;font-size:11px;padding:8px 12px;background:#faf8f5;border-radius:8px;border:1px solid var(--ln);word-break:break-all;color:var(--t2);margin-top:8px}
+.copy-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--ln);border-radius:6px;font-size:11px;color:var(--t3);background:#faf8f5;cursor:pointer;margin-top:6px}.copy-btn:hover{background:var(--ln)}
+
 .answer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .q-cell{background:#faf8f5;border:1px solid var(--ln);border-radius:6px;padding:3px;text-align:center}
 .q-cell .q-num{font-size:9px;color:var(--t4);font-weight:600}
@@ -162,6 +193,7 @@ table.tb{width:100%;border-collapse:collapse;font-size:13px}
 .pg{padding:16px 14px 120px}
 .pipe{grid-template-columns:1fr 1fr;gap:6px}.pipe-v{font-size:22px}
 .row{flex-direction:column;gap:0}
+.sr-scores{grid-template-columns:repeat(3,1fr)}.sr-cards{grid-template-columns:1fr}
 .csl-wrap{max-width:100%}
 .page-h{font-size:18px}
 }
@@ -469,17 +501,65 @@ async function svViewResult(sid){
 sh('결과 조회...');var r=await gA('tp_counsel_surveyResult',{student:sid,token:S.tk});hd();
 if(!r.ok){ts(r.error,'er');return;}
 try{var pj=JSON.parse(r.dataJson);var pa=pj.profileAnalysis||{};var ps=pj.profileScores||{};var rl=pj.reliability||{};var cs=pj.consultStrategy||{};var sa=pj.sectionAnalysis||{};
-var h='<div class="form-card"><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px"><span class="chip '+(rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er')+'">신뢰도 '+rl.score+'</span><span class="chip chip-n">'+r.date+'</span>';
-if(cs.recommend_tag_A)h+='<span class="chip chip-ac">'+cs.recommend_tag_A+'</span>';if(cs.recommend_tag_B)h+='<span class="chip chip-ac">'+cs.recommend_tag_B+'</span>';
+var h='<div class="form-card">';
+
+// 상단 태그
+h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">';
+if(rl.score){var rc=rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er';h+='<span class="chip '+rc+'">신뢰도 '+rl.score+'</span>';}
+if(r.date)h+='<span class="chip chip-n">'+r.date+'</span>';
+if(cs.priority)h+='<span class="chip chip-wn">'+cs.priority+'</span>';
+if(cs.recommend_tag_A)h+='<span class="chip chip-ac">'+cs.recommend_tag_A+'</span>';
+if(cs.recommend_tag_B)h+='<span class="chip chip-ac">'+cs.recommend_tag_B+'</span>';
 h+='</div>';
-if(pa.summary_title)h+='<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+pa.summary_title+'</div>';
-if(pa.summary_text)h+='<p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:16px">'+pa.summary_text+'</p>';
-if(ps.motivation!==undefined){h+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px">';
-[['동기',ps.motivation],['계획',ps.planning],['메타인지',ps.metacognition],['자기조절',ps.self_regulation],['도움요청',ps.help_seeking]].forEach(function(d){var c=d[1]>=70?'var(--ok)':d[1]>=40?'var(--wn)':'var(--er)';h+='<div style="text-align:center;padding:10px 4px;background:#faf8f5;border-radius:8px"><div style="font-size:20px;font-weight:700;color:'+c+'">'+d[1]+'</div><div style="font-size:11px;color:var(--t3)">'+d[0]+'</div></div>';});
-h+='</div>';}
-if(cs.recommend_text)h+='<div style="padding:12px;background:var(--acbg);border-radius:8px;border-left:3px solid var(--ac)"><div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">상담 전략</div><p style="font-size:12px;color:var(--t1);line-height:1.8">'+cs.recommend_text+'</p></div>';
-h+='</div>';$('sv-result').innerHTML=h;
+
+// 종합 요약
+if(pa.summary_title)h+='<div style="font-size:17px;font-weight:700;color:#1a1440;margin-bottom:6px">'+pa.summary_title+'</div>';
+if(pa.summary_text)h+='<p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:20px">'+pa.summary_text+'</p>';
+
+// 5대 역량 점수 카드 그리드
+var scoreNames=[['motivation','동기'],['planning','계획'],['metacognition','메타인지'],['self_regulation','자기조절'],['help_seeking','도움요청']];
+h+='<div class="sr-scores">';
+scoreNames.forEach(function(d){var v=ps[d[0]]||0;var c=v>=70?'var(--ok)':v>=40?'var(--wn)':'var(--er)';h+='<div class="sr-sc"><div class="val" style="color:'+c+'">'+v+'</div><div class="lbl">'+d[1]+'</div></div>';});
+h+='</div>';
+
+// 신뢰도 + 상담 전략 카드
+h+='<div class="sr-cards">';
+if(rl.score){h+='<div class="sr-card"><h5>신뢰도 <span class="chip '+(rl.score==='상'?'chip-ok':rl.score==='중'?'chip-wn':'chip-er')+'" style="font-size:10px">'+rl.score+'</span></h5><p>'+(rl.comment||'')+'</p></div>';}
+if(cs.recommend_text){h+='<div class="sr-card"><h5>상담 전략</h5><p><strong>'+(cs.recommend_tag_A||'')+'</strong>'+(cs.recommend_tag_B?' · '+cs.recommend_tag_B:'')+'</p><p style="margin-top:4px">'+cs.recommend_text+'</p></div>';}
+h+='</div>';
+
+// 5개 섹션 상세 분석
+var sections=[
+{key:'section1_motivation',title:'1부: 동기'},
+{key:'section2_cognition',title:'2부: 인지'},
+{key:'section3_behavior',title:'3부: 행동'},
+{key:'section4_emotion',title:'4부: 정서'},
+{key:'section5_environment',title:'5부: 환경'}
+];
+sections.forEach(function(sec){
+var d=sa[sec.key];if(!d)return;
+h+='<div class="sr-sec"><h5>'+sec.title+': '+(d.sectionName||'')+'</h5>';
+if(d.sectionSummary)h+='<p>'+d.sectionSummary+'</p>';
+if(d.detailedScores){
+Object.keys(d.detailedScores).forEach(function(k){
+var v=d.detailedScores[k]||0;var cls=v>=70?'bh':v>=40?'bm':'bl-c';
+var label=k.replace(/_/g,' ');
+h+='<div class="bar-row"><span class="bl">'+label+'</span><div class="bb"><div class="bf '+cls+'" style="width:'+v+'%"></div></div><span class="bv">'+v+'</span></div>';
+});}
+h+='</div>';
+});
+
+// 재분석 버튼
+h+='<div style="text-align:center;margin-top:16px"><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="svRerun(\''+sid+'\')">🔄 재분석 실행</button></div>';
+h+='</div>';
+$('sv-result').innerHTML=h;
 }catch(e){$('sv-result').innerHTML='<p style="color:var(--er)">결과 파싱 오류: '+e.message+'</p>';}}
+
+async function svRerun(sid){
+if(!confirm('성향검사를 재분석하시겠습니까?\nGemini API를 다시 호출합니다.'))return;
+sh('Gemini 재분석 중... (1~2분 소요)');
+var r=await pA({action:'tp_counsel_surveyRerun',token:S.tk,studentId:sid});hd();
+if(r.ok){ts(r.message,'ok');svViewResult(sid);}else{ts(r.error,'er');}}
 
 // ═══ 레벨테스트 ═══
 var LT={students:[],answerKey:null,gradeResult:null};
@@ -502,30 +582,94 @@ sh('정답지 로드...');var r=await gA('tp_counsel_answerKey',{subject:subj,le
 if(!r.ok){ts(r.error,'er');return;}LT.answerKey=r.data;LT.gradeResult=null;
 $('lt-result').innerHTML='';$('lt-save-btn').style.display='none';$('lt-grade-btn').disabled=false;
 var totalQ=r.data.totalQ||0;$('lt-info').style.display='block';$('lt-info').textContent=subj==='math'?'수학 '+level+' — '+totalQ+'문항':'영어 '+level+' — '+totalQ+'문항';
-var h='';for(var i=1;i<=totalQ;i++){h+='<div class="q-cell" id="qc'+i+'"><div class="q-num">'+i+'</div><input id="qa'+i+'" maxlength="5" oninput="ltCheckFilled()"></div>';}
+var h='';for(var i=1;i<=totalQ;i++){h+='<div class="q-cell" id="qc'+i+'"><div class="q-num">'+i+'</div><input id="qa'+i+'" maxlength="1" inputmode="numeric" data-idx="'+i+'" oninput="ltOnInput(this)" onkeydown="ltOnKey(event,this)"></div>';}
 $('lt-grid').innerHTML=h;$('lt-grid-wrap').style.display='block';$('lt-count').textContent='0/'+totalQ;
-$('lt-grid').querySelector('input').focus();}
+setTimeout(function(){var f=$('qa1');if(f)f.focus();},200);}
 
 function ltCheckFilled(){var total=LT.answerKey.totalQ;var filled=0;for(var i=1;i<=total;i++){if($('qa'+i).value.trim())filled++;}$('lt-count').textContent=filled+'/'+total;$('lt-grade-btn').disabled=filled===0;}
+
+function ltOnInput(el){
+var v=el.value;if(v&&!/^[1-5]$/.test(v)){el.value='';return;}
+ltCheckFilled();
+if(v){var idx=parseInt(el.dataset.idx);var next=$('qa'+(idx+1));if(next)next.focus();}}
+
+function ltOnKey(e,el){
+var idx=parseInt(el.dataset.idx);
+if(e.key==='Backspace'&&!el.value){var prev=$('qa'+(idx-1));if(prev){prev.focus();prev.select();}}
+if(e.key==='ArrowLeft'){var p=$('qa'+(idx-1));if(p)p.focus();}
+if(e.key==='ArrowRight'||e.key==='Tab'){if(e.key==='Tab')e.preventDefault();var n=$('qa'+(idx+1));if(n)n.focus();}}
 
 function ltGrade(){
 if(!LT.answerKey)return;var ak=LT.answerKey;var subj=$('lt-subject').value;var correct=0;var total=ak.totalQ;var scores=[];
 if(subj==='math'){
-for(var i=1;i<=total;i++){var ans=$('qa'+i).value.trim();var key=ak.answers[i-1]||'';var isCorrect=ans===key;scores.push(isCorrect?1:0);var cell=$('qc'+i);cell.classList.remove('correct','wrong');cell.classList.add(isCorrect?'correct':'wrong');if(isCorrect)correct++;}
+for(var i=1;i<=total;i++){var ans=$('qa'+i).value.trim();var key=String(ak.answers[i-1]||'');var isCorrect=ans===key;scores.push(isCorrect?1:0);var cell=$('qc'+i);cell.classList.remove('correct','wrong');cell.classList.add(isCorrect?'correct':'wrong');if(isCorrect)correct++;}
 }else{
 for(var i=0;i<ak.items.length;i++){var item=ak.items[i];var ans=$('qa'+item.q_number).value.trim().toUpperCase();var key=item.answer.toUpperCase();var isCorrect=ans===key;scores.push(isCorrect?1:0);var cell=$('qc'+item.q_number);cell.classList.remove('correct','wrong');cell.classList.add(isCorrect?'correct':'wrong');if(isCorrect)correct++;}
 }
 var pct=Math.round(correct/total*100);
+var clr=pct>=70?'var(--ok)':pct>=40?'var(--wn)':'var(--er)';
+var h='<div class="form-card"><div class="lt-score-box"><div class="big" style="color:'+clr+'">'+correct+' / '+total+'</div><div class="sub">정답률 '+pct+'%</div></div>';
+h+=ltBuildBreakdown(subj,ak,scores,correct,total,pct);
+h+='</div>';
+$('lt-result').innerHTML=h;
 LT.gradeResult={subject:subj,testType:$('lt-level').value,totalScore:correct,totalQuestions:total,percentage:pct,scores:scores};
-$('lt-result').innerHTML='<div class="form-card" style="text-align:center"><div style="font-size:28px;font-weight:800;color:'+(pct>=70?'var(--ok)':pct>=40?'var(--wn)':'var(--er)')+'">'+correct+'/'+total+'</div><div style="font-size:14px;color:var(--t3)">정답률 '+pct+'%</div></div>';
-$('lt-save-btn').style.display='';$('lt-grade-btn').disabled=true;}
+if(subj==='math'){LT.gradeResult.analysis=ltBuildMathAnalysis(ak,scores);}
+else{LT.gradeResult.behavior=ltBuildEngBehavior(ak,scores);LT.gradeResult.content=ltBuildEngContent(ak,scores);}
+$('lt-save-btn').style.display='';$('lt-grade-btn').disabled=true;
+window.scrollTo({top:$('lt-result').offsetTop-80,behavior:'smooth'});}
+
+function ltBuildMathAnalysis(ak,scores){
+var analysis={};
+for(var i=0;i<ak.totalQ;i++){
+var scope=ak.scopes[i],part=ak.parts[i],area=ak.areas[i];
+if(!scope)continue;
+if(!analysis[scope])analysis[scope]={score:0,total:0,part:{},area:{}};
+analysis[scope].total++;analysis[scope].score+=scores[i];
+if(part){if(!analysis[scope].part[part])analysis[scope].part[part]={score:0,total:0};analysis[scope].part[part].total++;analysis[scope].part[part].score+=scores[i];}
+if(area){if(!analysis[scope].area[area])analysis[scope].area[area]={score:0,total:0};analysis[scope].area[area].total++;analysis[scope].area[area].score+=scores[i];}
+}return analysis;}
+
+function ltBuildEngBehavior(ak,scores){var beh={};for(var i=0;i<ak.items.length;i++){var b=ak.items[i].behavior;if(!beh[b])beh[b]={score:0,total:0};beh[b].total++;beh[b].score+=scores[i];}return beh;}
+function ltBuildEngContent(ak,scores){var con={};for(var i=0;i<ak.items.length;i++){var c=ak.items[i].content;if(!con[c])con[c]={score:0,total:0};con[c].total++;con[c].score+=scores[i];}return con;}
+
+function ltBuildBreakdown(subj,ak,scores,correct,total,pct){
+var h='';
+if(subj==='math'){
+var analysis=ltBuildMathAnalysis(ak,scores);
+var scopes=Object.keys(analysis).sort();
+h+='<div class="bd-section"><h5>범위(Scope)별 분석</h5>';
+scopes.forEach(function(s){var d=analysis[s];var p=d.total>0?Math.round(d.score/d.total*100):0;h+=ltBarRow(s+' ('+d.total+'문항)',d.score+'/'+d.total+' '+p+'%',p);});
+h+='</div>';
+var parts={},areas={};
+scopes.forEach(function(s){
+Object.keys(analysis[s].part).forEach(function(p){if(!parts[p])parts[p]={score:0,total:0};parts[p].score+=analysis[s].part[p].score;parts[p].total+=analysis[s].part[p].total;});
+Object.keys(analysis[s].area).forEach(function(a){if(!areas[a])areas[a]={score:0,total:0};areas[a].score+=analysis[s].area[a].score;areas[a].total+=analysis[s].area[a].total;});
+});
+if(Object.keys(parts).length){h+='<div class="bd-section"><h5>영역(Part)별 분석</h5>';Object.keys(parts).forEach(function(p){var d=parts[p];var pc=d.total>0?Math.round(d.score/d.total*100):0;h+=ltBarRow(p,d.score+'/'+d.total+' '+pc+'%',pc);});h+='</div>';}
+if(Object.keys(areas).length){h+='<div class="bd-section"><h5>유형(Area)별 분석</h5>';Object.keys(areas).forEach(function(a){var d=areas[a];var pc=d.total>0?Math.round(d.score/d.total*100):0;h+=ltBarRow(a,d.score+'/'+d.total+' '+pc+'%',pc);});h+='</div>';}
+}else{
+var beh=ltBuildEngBehavior(ak,scores),con=ltBuildEngContent(ak,scores);
+h+='<div class="bd-section"><h5>행동영역(Behavior)별 분석</h5>';
+Object.keys(beh).forEach(function(b){var d=beh[b];var p=d.total>0?Math.round(d.score/d.total*100):0;h+=ltBarRow(b,d.score+'/'+d.total+' '+p+'%',p);});
+h+='</div>';
+h+='<div class="bd-section"><h5>내용영역(Content)별 분석</h5>';
+Object.keys(con).forEach(function(c){var d=con[c];var p=d.total>0?Math.round(d.score/d.total*100):0;h+=ltBarRow(c,d.score+'/'+d.total+' '+p+'%',p);});
+h+='</div>';
+}return h;}
+
+function ltBarRow(label,valText,pct){
+var cls=pct>=70?'bh':pct>=40?'bm':'bl-c';
+return '<div class="bar-row"><span class="bl">'+label+'</span><div class="bb"><div class="bf '+cls+'" style="width:'+pct+'%"></div></div><span class="bv">'+valText+'</span></div>';}
 
 async function ltSave(){
 if(!LT.gradeResult)return;var sid=$('lt-student').value;if(!sid){alert('학생을 선택하세요.');return;}
 sh('저장 중...');
-var resultJson=JSON.stringify(LT.gradeResult);
-var r=await pA({action:'tp_counsel_ltSave',token:S.tk,gradeData:{studentId:sid,subject:LT.gradeResult.subject,testType:LT.gradeResult.testType,totalScore:LT.gradeResult.totalScore,totalQuestions:LT.gradeResult.totalQuestions,percentage:LT.gradeResult.percentage,resultJson:resultJson,scoreArray:JSON.stringify(LT.gradeResult.scores)}});
-hd();if(r.ok){ts(r.message,'ok');loadLtStudents();}else{ts(r.error,'er');}}
+var rj={testType:LT.gradeResult.testType,subject:LT.gradeResult.subject,totalScore:LT.gradeResult.totalScore,totalQuestions:LT.gradeResult.totalQuestions,percentage:LT.gradeResult.percentage};
+if(LT.gradeResult.analysis)rj.analysis=LT.gradeResult.analysis;
+if(LT.gradeResult.behavior)rj.behavior=LT.gradeResult.behavior;
+if(LT.gradeResult.content)rj.content=LT.gradeResult.content;
+var r=await pA({action:'tp_counsel_ltSave',token:S.tk,gradeData:{studentId:sid,subject:LT.gradeResult.subject,testType:LT.gradeResult.testType,totalScore:LT.gradeResult.totalScore,totalQuestions:LT.gradeResult.totalQuestions,percentage:LT.gradeResult.percentage,resultJson:JSON.stringify(rj),scoreArray:JSON.stringify(LT.gradeResult.scores)}});
+hd();if(r.ok){ts(r.message,'ok');$('lt-save-btn').style.display='none';loadLtStudents();}else{ts(r.error,'er');}}
 
 function ltReset(){$('lt-grid-wrap').style.display='none';$('lt-result').innerHTML='';$('lt-info').style.display='none';$('lt-subject').selectedIndex=0;$('lt-level').innerHTML='<option value="">레벨 선택</option>';LT.answerKey=null;LT.gradeResult=null;$('lt-save-btn').style.display='none';$('lt-grade-btn').disabled=true;}
 
@@ -550,23 +694,92 @@ h+='<span class="chip '+(s.has_eng?'chip-ok':'chip-n')+'">영어LT '+(s.has_eng?
 h+='<span class="chip '+(s.has_math?'chip-ok':'chip-n')+'">수학LT '+(s.has_math?'✓':'—')+'</span>';
 h+='<span class="chip '+(s.has_analysis?'chip-ok':'chip-n')+'">분석 '+(s.has_analysis?'✓':'—')+'</span>';
 h+='</div>';
-if(s.has_analysis){h+='<div style="margin-top:10px"><button class="btn btn-g btn-sm" onclick="anViewResult(\''+sid+'\')">결과 보기</button> <button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="anRun()">재분석</button></div>';}
+if(s.has_analysis){h+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-sm" onclick="anViewResult(\''+sid+'\')">📊 결과 보기 / 리포트</button><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="anRun()">🔄 재분석</button></div>';}
 h+='</div>';$('an-student-info').innerHTML=h;$('an-result').innerHTML='';
 };}
 
 async function anRun(){
 var sid=$('an-student').value;if(!sid){alert('학생을 선택하세요.');return;}
+var s=AN.students.find(function(x){return x.student_id===sid;});
+if(s&&s.has_analysis&&!confirm('이미 분석이 완료되었습니다. 재분석하시겠습니까?\nGemini API를 다시 호출합니다.'))return;
 sh('Gemini 종합분석 중... (2~3분 소요)');
 var r=await pA({action:'tp_counsel_runAnalysis',token:S.tk,studentId:sid});hd();
-if(r.ok){ts(r.message,'ok');$('an-result').innerHTML='<div class="form-card" style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:8px">🎉</div><p style="font-size:15px;font-weight:600">'+r.message+'</p><p style="font-size:12px;color:var(--t3);margin-top:4px">리포트 토큰: '+r.token+'</p><button class="btn btn-p btn-sm" style="margin-top:12px" onclick="anViewResult(\''+sid+'\')">결과 보기</button></div>';loadAnStudents();}
-else{ts(r.error,'er');}}
+if(r.ok){
+ts(r.message,'ok');
+var name=s?s.name:'';
+var rptUrl='https://counsel.trueasheard.com?page=report&token='+encodeURIComponent(r.token)+'&name='+encodeURIComponent(name);
+var rptUrlAdmin=rptUrl+'&admin=1';
+var h='<div class="form-card" style="text-align:center;padding:28px">';
+h+='<div style="font-size:40px;margin-bottom:12px">🎉</div>';
+h+='<div style="font-size:18px;font-weight:700;color:#1a1440;margin-bottom:4px">'+r.message+'</div>';
+h+='<p style="font-size:13px;color:var(--t3);margin-bottom:16px">상담 유형: '+(r.consultType||'-')+'</p>';
+h+='<div class="token-box">토큰: '+esc(r.token)+'</div>';
+h+='<button class="copy-btn" onclick="cpTk(\''+r.token+'\')">📋 토큰 복사</button>';
+h+='<button class="copy-btn" onclick="cpTk(\''+rptUrl+'\')">🔗 학부모 링크 복사</button>';
+h+='</div>';
+h+='<div class="rpt-link-card" onclick="window.open(\''+rptUrlAdmin+'\',\'_blank\')"><div class="ico">📊</div><div class="info"><h4>전체 리포트 열기 (관리자)</h4><p>차트, DNA맵, 시뮬레이션, 서명 — 풀 리포트</p></div></div>';
+h+='<div class="rpt-link-card" style="background:linear-gradient(135deg,#15803d,#16a34a);margin-top:8px" onclick="window.open(\''+rptUrl+'\',\'_blank\')"><div class="ico">👨‍👩‍👧</div><div class="info"><h4>학부모 공유용 리포트</h4><p>이 링크를 학부모님에게 공유하세요</p></div></div>';
+$('an-result').innerHTML=h;
+loadAnStudents();
+}else{ts(r.error,'er');}}
 
 async function anViewResult(sid){
 sh('결과 조회...');var r=await gA('tp_counsel_analysisResult',{student:sid,token:S.tk});hd();
 if(!r.ok){ts(r.error,'er');return;}
-$('an-result').innerHTML='<div class="form-card"><div style="font-size:14px;font-weight:700;margin-bottom:8px">종합분석 결과 ('+r.date+')</div><div style="display:flex;gap:8px;margin-bottom:12px"><span class="chip chip-ac">토큰: '+r.token+'</span></div><details><summary style="cursor:pointer;font-size:13px;color:var(--ac)">JSON 데이터 보기</summary><pre style="font-size:11px;max-height:400px;overflow:auto;background:#faf8f5;padding:12px;border-radius:8px;margin-top:8px;white-space:pre-wrap">'+esc(r.dataJson.substring(0,5000))+'</pre></details></div>';}
+var s=AN.students.find(function(x){return x.student_id===sid;});
+var name=s?s.name:'';
+var rptUrl='https://counsel.trueasheard.com?page=report&token='+encodeURIComponent(r.token)+'&name='+encodeURIComponent(name);
+var rptUrlAdmin=rptUrl+'&admin=1';
+
+var h='<div class="form-card">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+h+='<div style="font-size:15px;font-weight:700">📊 종합분석 결과</div>';
+h+='<span class="chip chip-n">'+(r.date||'')+'</span>';
+h+='</div>';
+
+// 데이터 요약 파싱 시도
+try{
+var pj=JSON.parse(r.dataJson);
+// 기본 프로필
+if(pj.basicProfile){
+var bp=pj.basicProfile;
+h+='<div style="padding:12px;background:#faf8f5;border-radius:10px;margin-bottom:12px;font-size:13px;line-height:1.8">';
+h+='<strong>'+esc(bp.name||name)+'</strong> — '+(bp.school||'')+' '+(bp.grade||'');
+if(bp.subject)h+=' · 수강과목: '+bp.subject;
+h+='</div>';
+}
+// 성향검사 요약 (있는 경우)
+if(pj.propensityData&&pj.propensityData.profileScores){
+var ps=pj.propensityData.profileScores;
+h+='<div style="font-size:12px;font-weight:700;color:var(--t3);margin-bottom:6px">학습 성향 역량</div>';
+h+='<div class="sr-scores" style="margin-bottom:12px">';
+[['motivation','동기'],['planning','계획'],['metacognition','메타인지'],['self_regulation','자기조절'],['help_seeking','도움요청']].forEach(function(d){
+var v=ps[d[0]]||0;var c=v>=70?'var(--ok)':v>=40?'var(--wn)':'var(--er)';
+h+='<div class="sr-sc"><div class="val" style="color:'+c+';font-size:20px">'+v+'</div><div class="lbl">'+d[1]+'</div></div>';});
+h+='</div>';
+}
+// 상담 유형
+if(pj.consultType){h+='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-ac">상담유형: '+(pj.consultType==='HIGH_SCHOOL'?'고등학생':'초중학생')+'</span></div>';}
+}catch(e){}
+
+// 토큰 정보
+h+='<div class="token-box">토큰: '+esc(r.token)+'</div>';
+h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+h+='<button class="copy-btn" onclick="cpTk(\''+r.token+'\')">📋 토큰 복사</button>';
+h+='<button class="copy-btn" onclick="cpTk(\''+rptUrl+'\')">🔗 학부모 링크 복사</button>';
+h+='</div>';
+h+='</div>';
+
+// 리포트 열기 카드
+h+='<div class="rpt-link-card" onclick="window.open(\''+rptUrlAdmin+'\',\'_blank\')"><div class="ico">📊</div><div class="info"><h4>전체 리포트 열기 (관리자)</h4><p>차트, DNA맵, 시뮬레이션, 로드맵, 서명 — 풀 리포트</p></div></div>';
+h+='<div class="rpt-link-card" style="background:linear-gradient(135deg,#15803d,#16a34a);margin-top:8px" onclick="window.open(\''+rptUrl+'\',\'_blank\')"><div class="ico">👨‍👩‍👧</div><div class="info"><h4>학부모 공유용 리포트</h4><p>이 링크를 학부모님에게 공유하세요</p></div></div>';
+
+$('an-result').innerHTML=h;}
 
 function tglSide(){const s=$('side'),bd=$('sideBd');const open=!s.classList.contains('op');s.classList.toggle('op');bd.style.display=open?'block':'none';}
+
+function cpTk(text){navigator.clipboard.writeText(text).then(function(){ts('클립보드에 복사되었습니다','ok');}).catch(function(){
+var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ts('복사 완료','ok');});}
 
 function buildBtab(){
 $('btab').innerHTML=[

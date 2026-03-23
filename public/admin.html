@@ -603,8 +603,8 @@ $('sv-result').innerHTML=h;}
 
 // ★ SVG 레이더 차트 생성
 function svBuildRadarSVG(scores,labels){
-var cx=160,cy=140,r=100,n=scores.length;
-var svg='<div style="display:flex;justify-content:center;padding:10px 0"><svg xmlns="http://www.w3.org/2000/svg" width="320" height="290" viewBox="0 0 320 290">';
+var cx=170,cy=150,r=95,n=scores.length;
+var svg='<div style="display:flex;justify-content:center;padding:10px 0"><svg xmlns="http://www.w3.org/2000/svg" width="340" height="320" viewBox="0 0 340 320">';
 // 배경 그리드 (4단계)
 for(var level=4;level>=1;level--){
 var rr=r*level/4;var pts=[];
@@ -621,14 +621,14 @@ svg+='<polygon points="'+dataPts.join(' ')+'" fill="rgba(37,99,235,0.2)" stroke=
 // 데이터 포인트
 for(var i=0;i<n;i++){var angle=Math.PI*2*i/n-Math.PI/2;var rr=r*scores[i]/100;
 svg+='<circle cx="'+(cx+rr*Math.cos(angle)).toFixed(1)+'" cy="'+(cy+rr*Math.sin(angle)).toFixed(1)+'" r="3" fill="#2563eb"/>';}
-// 라벨 + 점수
-for(var i=0;i<n;i++){var angle=Math.PI*2*i/n-Math.PI/2;var lr=r+22;
+// 라벨 + 점수 (라벨 아래에 점수 배치, 겹침 방지)
+for(var i=0;i<n;i++){var angle=Math.PI*2*i/n-Math.PI/2;var lr=r+28;
 var lx=cx+lr*Math.cos(angle);var ly=cy+lr*Math.sin(angle);
 var anchor='middle';if(lx<cx-10)anchor='end';else if(lx>cx+10)anchor='start';
-svg+='<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" font-size="11" font-weight="600" fill="#374151" dominant-baseline="central">'+labels[i]+'</text>';
-// 점수 표시
-var sl=r+38;var sx=cx+sl*Math.cos(angle);var sy=cy+sl*Math.sin(angle);
-svg+='<text x="'+sx.toFixed(1)+'" y="'+sy.toFixed(1)+'" text-anchor="'+anchor+'" font-size="10" fill="#6b7280" dominant-baseline="central">'+scores[i]+'</text>';}
+// 상단(동기)은 위로, 하단(자기조절/메타인지)은 아래로 오프셋
+var yOff=ly<cy?-6:ly>cy+20?6:0;
+svg+='<text x="'+lx.toFixed(1)+'" y="'+(ly+yOff).toFixed(1)+'" text-anchor="'+anchor+'" font-size="12" font-weight="600" fill="#374151" dominant-baseline="central">'+labels[i]+'</text>';
+svg+='<text x="'+lx.toFixed(1)+'" y="'+(ly+yOff+14).toFixed(1)+'" text-anchor="'+anchor+'" font-size="10" fill="#6b7280" dominant-baseline="central">'+scores[i]+'</text>';}
 svg+='</svg></div>';return svg;}
 
 // 분석 실행 (기존 시트 데이터로)
@@ -841,6 +841,8 @@ $('lt-save-toast').textContent='✅ '+r.message;
 $('lt-save-toast').style.display='block';
 $('lt-save-btn').style.display='none';
 loadLtStudents();
+// 2초 후 자동 초기화
+setTimeout(function(){ltReset();},2000);
 }else{ts(r.error,'er');$('lt-save-btn').disabled=false;}}
 
 // ═══ 유틸 ═══

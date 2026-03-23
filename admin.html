@@ -325,10 +325,10 @@ if(!u||!p){$('aerr').textContent='이름과 비밀번호를 입력해주세요.'
 $('abtn').disabled=true;$('abtn').textContent='로그인 중...';$('aerr').textContent='';
 try{
 const r=await gA('tp_login',{name:u,pw:p});
-if(r.ok&&r.role==='관리자'){
-S.tk=r.token;S.t=r;
+if(r.ok&&r.teacher&&r.teacher.role==='관리자'){
+S.tk=r.token;S.t=r.teacher;
 $('auth').classList.add('hd');$('app').classList.add('on');
-$('uAv').textContent=u.charAt(0);$('uNm').textContent=u+' (관리자)';
+$('uAv').textContent=r.teacher.name.charAt(0);$('uNm').textContent=r.teacher.name+' (관리자)';
 buildBtab();loadDash();
 }else if(r.ok){$('aerr').textContent='관리자 계정만 접근할 수 있습니다.';}
 else{$('aerr').textContent=r.error||'로그인 실패';}

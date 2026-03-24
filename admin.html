@@ -428,15 +428,99 @@ function sh(m){$('ovMsg').textContent=m||'로딩 중...';$('ov').classList.add('
 function hd(){$('ov').classList.remove('show');}
 function ts(m,type){const t=$('toast');t.textContent=m;t.className='toast show toast-'+(type||'ok');setTimeout(()=>t.classList.remove('show'),3000);}
 
+// ═══ 보안 세션 관리 ═══
+const SESSION_KEY='counsel_session';
+const SESSION_TTL=4*60*60*1000; // 4시간
+const IDLE_LIMIT=30*60*1000; // 30분 무활동 시 만료
+let idleTimer=null;
+
+function saveSession(){
+sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+tk:S.tk,t:S.t,
+loginAt:Date.now(),
+lastActive:Date.now()
+}));}
+
+function loadSession(){
+try{
+var raw=sessionStorage.getItem(SESSION_KEY);
+if(!raw)return null;
+var sess=JSON.parse(raw);
+// TTL 만료 확인 (4시간)
+if(Date.now()-sess.loginAt>SESSION_TTL){sessionStorage.removeItem(SESSION_KEY);return null;}
+// IDLE 만료 확인 (30분)
+if(Date.now()-sess.lastActive>IDLE_LIMIT){sessionStorage.removeItem(SESSION_KEY);return null;}
+return sess;
+}catch(e){sessionStorage.removeItem(SESSION_KEY);return null;}}
+
+function touchSession(){
+try{
+var raw=sessionStorage.getItem(SESSION_KEY);
+if(!raw)return;
+var sess=JSON.parse(raw);
+sess.lastActive=Date.now();
+sessionStorage.setItem(SESSION_KEY,JSON.stringify(sess));
+}catch(e){}}
+
+function clearSession(){
+sessionStorage.removeItem(SESSION_KEY);
+S={tk:'',t:null};
+if(idleTimer)clearTimeout(idleTimer);}
+
+// IDLE 감시 — 사용자 활동 시 타이머 리셋
+function resetIdleTimer(){
+if(idleTimer)clearTimeout(idleTimer);
+touchSession();
+idleTimer=setTimeout(function(){
+if(S.tk){ts('30분간 활동이 없어 자동 로그아웃됩니다','er');setTimeout(doLogout,2000);}
+},IDLE_LIMIT);}
+
+// 사용자 활동 이벤트 감시
+['click','keydown','scroll','touchstart'].forEach(function(ev){
+document.addEventListener(ev,resetIdleTimer,{passive:true});});
+
+// 탭 전환 시 세션 유효성 검증
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState==='visible'&&S.tk){
+var sess=loadSession();
+if(!sess){ts('세션이 만료되었습니다','er');setTimeout(doLogout,1000);return;}
+// 서버 토큰 검증 (백그라운드)
+validateTokenQuiet();}});
+
+async function validateTokenQuiet(){
+try{
+var r=await gA('tp_counsel_surveyStudents',{token:S.tk});
+if(!r.ok&&(r.error||'').indexOf('인증')>=0){doLogout();ts('인증이 만료되었습니다. 다시 로그인해주세요.','er');}
+}catch(e){}}
+
+// ═══ API 래퍼 (인증 실패 자동 처리) ═══
 async function gA(action,params){
 const qs=new URLSearchParams(Object.assign({action},params||{}));
-const r=await fetch(API+'?'+qs);return r.json();}
-async function pA(data){
-const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json();}
+try{
+const r=await fetch(API+'?'+qs);
+const data=await r.json();
+if(data&&!data.ok&&data.error&&(data.error.indexOf('인증')>=0||data.error.indexOf('토큰')>=0||data.error.indexOf('권한')>=0)){
+clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
+touchSession();return data;
+}catch(e){return{ok:false,error:'서버 연결 실패'};}}
 
-// AUTH
+async function pA(data){
+try{
+const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+const res=await r.json();
+if(res&&!res.ok&&res.error&&(res.error.indexOf('인증')>=0||res.error.indexOf('토큰')>=0||res.error.indexOf('권한')>=0)){
+clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
+touchSession();return res;
+}catch(e){return{ok:false,error:'서버 연결 실패'};}}
+
+// ═══ AUTH ═══
 $('ap').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 $('au').addEventListener('keydown',e=>{if(e.key==='Enter')$('ap').focus();});
+
+function enterApp(){
+$('auth').classList.add('hd');$('app').classList.add('on');
+$('uAv').textContent=S.t.name.charAt(0);$('uNm').textContent=S.t.name+' (관리자)';
+buildBtab();nav('p-consult');resetIdleTimer();}
 
 async function doLogin(){
 const u=$('au').value.trim(),p=$('ap').value.trim();
@@ -446,15 +530,26 @@ try{
 const r=await gA('tp_login',{name:u,pw:p});
 if(r.ok&&r.teacher&&r.teacher.role==='관리자'){
 S.tk=r.token;S.t=r.teacher;
-$('auth').classList.add('hd');$('app').classList.add('on');
-$('uAv').textContent=r.teacher.name.charAt(0);$('uNm').textContent=r.teacher.name+' (관리자)';
-buildBtab();nav('p-consult');
+saveSession();enterApp();
 }else if(r.ok){$('aerr').textContent='관리자 계정만 접근할 수 있습니다.';}
 else{$('aerr').textContent=r.error||'로그인 실패';}
 }catch(e){$('aerr').textContent='서버 연결 실패';}
 $('abtn').disabled=false;$('abtn').textContent='로그인';}
 
-function doLogout(){S={tk:'',t:null};$('app').classList.remove('on');$('auth').classList.remove('hd');$('au').value='';$('ap').value='';}
+function doLogout(){
+clearSession();
+$('app').classList.remove('on');$('auth').classList.remove('hd');
+$('au').value='';$('ap').value='';}
+
+// ═══ 자동 세션 복원 (페이지 로드 시) ═══
+(function autoRestore(){
+var sess=loadSession();
+if(sess&&sess.tk&&sess.t){
+S.tk=sess.tk;S.t=sess.t;
+enterApp();
+// 백그라운드에서 토큰 유효성 검증
+validateTokenQuiet();
+}})();
 
 // NAV
 function nav(p){

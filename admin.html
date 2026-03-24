@@ -180,6 +180,27 @@ table.tb{width:100%;border-collapse:collapse;font-size:12px}
 .btab{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--ln);z-index:300;padding:4px 0 env(safe-area-inset-bottom,4px);justify-content:space-around}
 .btab-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 4px;color:var(--t4);font-size:9px;font-weight:500;cursor:pointer;flex:1;text-align:center}.btab-item.on{color:var(--ink)}.btab-item .btico{font-size:14px}
 
+/* SEARCHABLE DROPDOWN */
+.sd-wrap{position:relative}
+.sd-input{width:100%;padding:9px 32px 9px 12px;border:1px solid var(--ln);border-radius:6px;font-size:13px;background:var(--sf);outline:0;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-input:focus,.sd-wrap.open .sd-input{border-color:var(--ac)}
+.sd-input::placeholder{color:var(--t4)}
+.sd-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--t4);pointer-events:none}
+.sd-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--sf);border:1px solid var(--ln);border-radius:6px;z-index:50;max-height:320px;overflow:hidden;flex-direction:column}
+.sd-wrap.open .sd-panel{display:flex}
+.sd-search{padding:8px 10px;border-bottom:1px solid var(--ln)}
+.sd-search input{width:100%;padding:6px 8px;border:1px solid var(--ln);border-radius:4px;font-size:12px;outline:0}
+.sd-search input:focus{border-color:var(--ac)}
+.sd-list{overflow-y:auto;flex:1;max-height:260px}
+.sd-group{padding:6px 10px 3px;font-size:10px;font-weight:600;color:var(--t4);letter-spacing:.04em;text-transform:uppercase;background:var(--lnl);border-bottom:1px solid var(--ln);position:sticky;top:0}
+.sd-item{padding:7px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--lnl)}
+.sd-item:hover{background:var(--lnl)}
+.sd-item.active{background:var(--acbg)}
+.sd-item .sd-name{font-weight:500;color:var(--ink)}.sd-item .sd-meta{font-size:10px;color:var(--t4)}
+.sd-item .sd-tags{display:flex;gap:3px;margin-left:auto}
+.sd-item .sd-tag{font-size:9px;padding:1px 5px;border-radius:8px;font-weight:600}
+.sd-empty{padding:16px;text-align:center;font-size:11px;color:var(--t4)}
+
 @media(max-width:768px){
 .side{transform:translateX(-100%);width:240px}.side.op{transform:translateX(0)}
 .main{margin-left:0}
@@ -337,7 +358,12 @@ table.tb{width:100%;border-collapse:collapse;font-size:12px}
 <!-- 학생 선택 바 -->
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
 <div style="flex:1;min-width:200px">
-<select id="sv-student" style="width:100%;padding:10px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5" onchange="onSvStudentChange()"><option value="">학생을 선택하세요...</option></select>
+<div class="sd-wrap" id="sd-sv">
+<input class="sd-input" id="sd-sv-btn" placeholder="학생을 선택하세요..." readonly onclick="sdToggle('sd-sv')">
+<span class="sd-arrow">▾</span>
+<div class="sd-panel"><div class="sd-search"><input type="text" placeholder="이름 검색..." oninput="sdFilter('sd-sv',this.value)"></div><div class="sd-list" id="sd-sv-list"></div></div>
+</div>
+<input type="hidden" id="sv-student">
 </div>
 <button class="btn btn-g" onclick="loadSvStudents()">새로고침</button>
 </div>
@@ -361,7 +387,14 @@ table.tb{width:100%;border-collapse:collapse;font-size:12px}
 <p class="page-sub">학생을 선택하고 답안을 입력하여 채점합니다</p>
 <div class="form-card">
 <div style="display:flex;gap:10px;flex-wrap:wrap">
-<div class="field" style="flex:1;min-width:150px"><label>학생 선택</label><select id="lt-student" style="width:100%;padding:10px;border:1.5px solid var(--ln);border-radius:10px;font-size:14px;background:#faf8f5"><option value="">학생 선택...</option></select></div>
+<div class="field" style="flex:1;min-width:150px"><label>학생 선택</label>
+<div class="sd-wrap" id="sd-lt">
+<input class="sd-input" id="sd-lt-btn" placeholder="학생 선택..." readonly onclick="sdToggle('sd-lt')">
+<span class="sd-arrow">▾</span>
+<div class="sd-panel"><div class="sd-search"><input type="text" placeholder="이름 검색..." oninput="sdFilter('sd-lt',this.value)"></div><div class="sd-list" id="sd-lt-list"></div></div>
+</div>
+<input type="hidden" id="lt-student">
+</div>
 <div class="field" style="flex:1;min-width:120px"><label>과목</label><select id="lt-subject" onchange="ltSubjectChange()" style="width:100%;padding:10px;border:1.5px solid var(--ln);border-radius:10px;font-size:14px;background:#faf8f5"><option value="">과목 선택</option><option value="math">수학</option><option value="english">영어</option></select></div>
 <div class="field" style="flex:1;min-width:120px"><label>레벨</label><select id="lt-level" onchange="ltLevelChange()" style="width:100%;padding:10px;border:1.5px solid var(--ln);border-radius:10px;font-size:14px;background:#faf8f5"><option value="">레벨 선택</option></select></div>
 </div>
@@ -399,7 +432,12 @@ table.tb{width:100%;border-collapse:collapse;font-size:12px}
 </div>
 <div id="an-content" style="display:none">
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-<select id="an-student" class="field-select" style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--ln);border-radius:10px;font-size:15px;background:#faf8f5"><option value="">학생 선택...</option></select>
+<div class="sd-wrap" id="sd-an" style="flex:1;min-width:200px">
+<input class="sd-input" id="sd-an-btn" placeholder="학생 선택..." readonly onclick="sdToggle('sd-an')">
+<span class="sd-arrow">▾</span>
+<div class="sd-panel"><div class="sd-search"><input type="text" placeholder="이름 검색..." oninput="sdFilter('sd-an',this.value)"></div><div class="sd-list" id="sd-an-list"></div></div>
+</div>
+<input type="hidden" id="an-student">
 <button class="btn btn-p" id="an-run-btn" onclick="anRun()" disabled>종합분석 실행</button>
 <button class="btn btn-g" onclick="loadAnStudents()">새로고침</button>
 </div>
@@ -564,6 +602,110 @@ if(p==='p-survey')loadSvStudents();
 if(p==='p-lt')loadLtStudents();
 if(p==='p-analysis'&&$('an-content').style.display!=='none')loadAnStudents();}
 
+// ═══ 검색 가능 그룹 드롭다운 ═══
+var SD_DATA={};// 'sd-sv':{items:[],onSelect:fn}
+
+function sdToggle(id){
+var wrap=$(id);
+if(wrap.classList.contains('open')){sdClose(id);return;}
+// 다른 열린 드롭다운 닫기
+document.querySelectorAll('.sd-wrap.open').forEach(function(w){w.classList.remove('open');});
+wrap.classList.add('open');
+var si=wrap.querySelector('.sd-search input');if(si){si.value='';si.focus();}
+sdFilter(id,'');}
+
+function sdClose(id){$(id).classList.remove('open');}
+
+// 외부 클릭으로 닫기
+document.addEventListener('click',function(e){
+if(!e.target.closest('.sd-wrap')){document.querySelectorAll('.sd-wrap.open').forEach(function(w){w.classList.remove('open');});}});
+
+function sdFilter(id,q){
+var list=$(id+'-list');if(!list)return;
+var data=SD_DATA[id];if(!data)return;
+q=(q||'').toLowerCase().trim();
+var newItems=q?data.items.filter(function(it){return it.name.toLowerCase().indexOf(q)>=0||it.meta.toLowerCase().indexOf(q)>=0;}):data.items;
+sdRenderList(id,newItems);}
+
+function sdRenderList(id,items){
+var list=$(id+'-list');
+// 그룹 분리
+var newStudents=items.filter(function(it){return it.source!=='enrolled';});
+var enrolled=items.filter(function(it){return it.source==='enrolled';});
+var h='';
+if(newStudents.length){
+h+='<div class="sd-group">신규 상담 ('+newStudents.length+')</div>';
+newStudents.forEach(function(it){h+=sdItemHtml(id,it);});}
+if(enrolled.length){
+h+='<div class="sd-group">재원생 ('+enrolled.length+')</div>';
+enrolled.forEach(function(it){h+=sdItemHtml(id,it);});}
+if(!h)h='<div class="sd-empty">검색 결과 없음</div>';
+list.innerHTML=h;}
+
+function sdItemHtml(id,it){
+var h='<div class="sd-item" onclick="sdSelect(\''+id+'\',\''+esc(it.id)+'\',\''+esc(it.source||'')+'\')">';
+h+='<div><span class="sd-name">'+esc(it.name)+'</span> <span class="sd-meta">'+esc(it.meta)+'</span></div>';
+if(it.tags){h+='<div class="sd-tags">';
+it.tags.forEach(function(t){h+='<span class="sd-tag" style="background:'+t.bg+';color:'+t.color+'">'+t.text+'</span>';});
+h+='</div>';}
+h+='</div>';return h;}
+
+async function sdSelect(id,studentId,source){
+sdClose(id);
+var data=SD_DATA[id];if(!data)return;
+var it=data.items.find(function(x){return x.id===studentId;});
+if(!it)return;
+
+// 재원생 → counsel 자동 등록
+if(source==='enrolled'){
+sh('재원생 등록 중...');
+var reg=await pA({action:'tp_counsel_registerEnrolled',token:S.tk,data:{
+name:it.name,grade:it.grade,school:it.school,
+parentPhone:it.parentPhone||'',studentPhone:it.studentPhone||'',
+subjects:it.subjects||[]}});
+hd();
+if(!reg.ok){ts(reg.error||'등록 실패','er');return;}
+studentId=reg.studentId;
+_enrolledCache=null; // 캐시 무효화
+ts(reg.existing?it.name+' — 기존 등록 확인':reg.message,'ok');
+// 학생 목록 재로드 후 자동 선택
+if(data.reload){await data.reload(studentId);return;}}
+
+// hidden input에 값 설정
+var hiddenId=id.replace('sd-','');
+$(hiddenId+'-student').value=studentId;
+$(id+'-btn').value=it.name+' ('+it.meta+')';
+
+// 콜백 실행
+if(data.onSelect)data.onSelect(studentId);}
+
+// SD 초기화 헬퍼
+function sdInit(id,items,onSelect,reload){
+SD_DATA[id]={items:items,onSelect:onSelect,reload:reload||null};
+sdRenderList(id,items);
+$(id+'-btn').value='';
+var hiddenId=id.replace('sd-','');
+$(hiddenId+'-student').value='';}
+
+// SD 자동 선택 (reload 후 호출)
+function sdAutoSelect(id,studentId){
+var data=SD_DATA[id];if(!data)return;
+var it=data.items.find(function(x){return x.id===studentId;});
+if(!it)return;
+var hiddenId=id.replace('sd-','');
+$(hiddenId+'-student').value=studentId;
+$(id+'-btn').value=it.name+' ('+it.meta+')';
+if(data.onSelect)data.onSelect(studentId);}
+
+// ═══ 재원생 목록 병합 헬퍼 ═══
+var _enrolledCache=null;var _enrolledTs=0;
+async function fetchEnrolled(){
+// 5분 캐시
+if(_enrolledCache&&Date.now()-_enrolledTs<300000)return _enrolledCache;
+var r=await gA('tp_counsel_enrolledStudents',{token:S.tk});
+if(r.ok){_enrolledCache=r.students;_enrolledTs=Date.now();return r.students;}
+return[];}
+
 // ═══ 성향검사 ═══
 var SV={students:[],studentId:'',surveyType:''};
 var SV_LABELS={"intrinsic_motivation":"내재적 동기","identified_regulation":"동일시 조절","self_efficacy":"자기효능감","achievement_pressure":"성취 압박감","academic_lethargy":"학업 무기력","metacognition":"메타인지","planning_ability":"계획 수립","memory_strategy":"암기 전략","comprehension_strategy":"이해 전략","error_analysis":"오답 분석","execution_power":"실행력","persistence":"끈기/지속성","env_control":"환경 통제","attention_control":"집중 유지","digital_detox":"디지털 절제","academic_self_esteem":"학업 자존감","test_anxiety":"시험 불안","resilience":"회복 탄력성","emotion_regulation":"감정 조절","optimism":"낙관성","parent_support":"부모 지지","autonomy_respect":"자율성 존중","help_seeking":"도움 요청","teacher_rapport":"교사 유대감","peer_relation":"교우 관계"};
@@ -574,14 +716,27 @@ var SV_SEC_COLORS=[
 {title:'정서 관리',bg:'#fff0f3',border:'#f5c0cc',barFill:'#f0a0b4',titleColor:'#b03060'},
 {title:'학습 환경',bg:'#f0f8ed',border:'#c4e4b8',barFill:'#aad89e',titleColor:'#3a7a28'}];
 
-async function loadSvStudents(){
-sh('학생 목록...');const r=await gA('tp_counsel_surveyStudents',{token:S.tk});hd();
-if(!r.ok){ts(r.error,'er');return;}SV.students=r.students;
-var sel=$('sv-student');var prev=sel.value;
-sel.innerHTML='<option value="">학생을 선택하세요...</option>';
-r.students.forEach(function(s){var o=document.createElement('option');o.value=s.student_id;
-o.textContent=s.name+' ('+s.grade+' · '+s.school+')'+(s.has_survey?' ✅':'');sel.appendChild(o);});
-if(prev){sel.value=prev;onSvStudentChange();}}
+async function loadSvStudents(autoSelectId){
+sh('학생 목록...');
+var r=await gA('tp_counsel_surveyStudents',{token:S.tk});
+var enrolled=await fetchEnrolled();
+hd();
+if(!r.ok){ts(r.error,'er');return;}
+SV.students=r.students;
+var items=[];
+r.students.forEach(function(s){
+var tags=[];
+if(s.has_survey)tags.push({text:'검사완료',bg:'var(--okbg)',color:'#15803d'});
+items.push({id:s.student_id,name:s.name,grade:s.grade,school:s.school,
+meta:s.grade+' · '+s.school,source:'new',tags:tags});});
+enrolled.forEach(function(s){
+var subj=(s.subjects||[]).join('+');
+items.push({id:'enr_'+s.name,name:s.name,grade:s.grade,school:s.school,
+parentPhone:s.parentPhone,studentPhone:s.studentPhone,subjects:s.subjects,
+meta:s.grade+' · '+s.school+(subj?' ['+subj+']':''),source:'enrolled',tags:
+[{text:'재원',bg:'var(--acbg)',color:'var(--ac)'}]});});
+sdInit('sd-sv',items,function(sid){onSvStudentChange();},loadSvStudents);
+if(autoSelectId)sdAutoSelect('sd-sv',autoSelectId);}
 
 async function onSvStudentChange(){
 var sid=$('sv-student').value;
@@ -755,14 +910,26 @@ if(r.ok){ts(r.message,'ok');loadSvStudents();svLoadResult(SV.studentId);}else{ts
 var LT={students:[],answerKey:null,gradeResult:null,gridCollapsed:false};
 var LT_LEVELS={math:[{value:'EA',label:'EA (초3~5)',q:50},{value:'EB',label:'EB (초4~6)',q:56},{value:'MA',label:'MA (초5~중1)',q:65},{value:'MB',label:'MB (초6~중2)',q:70},{value:'MC',label:'MC (중1~3)',q:66}],english:[{value:'EA',label:'EA (초등 기초)',q:20},{value:'EB',label:'EB (초등 중급)',q:30},{value:'EC',label:'EC (초등 고급)',q:40},{value:'MA',label:'MA (중등 기초)',q:55},{value:'MB',label:'MB (중등 중급)',q:55},{value:'MC',label:'MC (중등 고급)',q:60}]};
 
-async function loadLtStudents(){
-sh('학생 목록...');var r=await gA('tp_counsel_ltStudents',{token:S.tk});hd();
+async function loadLtStudents(autoSelectId){
+sh('학생 목록...');
+var r=await gA('tp_counsel_ltStudents',{token:S.tk});
+var enrolled=await fetchEnrolled();
+hd();
 if(!r.ok){ts(r.error,'er');return;}LT.students=r.students;
-var sel=$('lt-student');sel.innerHTML='<option value="">학생 선택...</option>';
+var items=[];
 r.students.forEach(function(s){
-var tags=[];if(s.has_eng)tags.push('영✓');if(s.has_math)tags.push('수✓');
-var tagStr=tags.length?' ['+tags.join(' ')+']':'';
-sel.innerHTML+='<option value="'+s.student_id+'">'+esc(s.name)+' ('+s.grade+' · '+s.school+')'+tagStr+'</option>';});}
+var tags=[];if(s.has_eng)tags.push({text:'영✓',bg:'var(--okbg)',color:'#15803d'});
+if(s.has_math)tags.push({text:'수✓',bg:'var(--okbg)',color:'#15803d'});
+items.push({id:s.student_id,name:s.name,grade:s.grade,school:s.school,
+meta:s.grade+' · '+s.school,source:'new',tags:tags});});
+enrolled.forEach(function(s){
+var subj=(s.subjects||[]).join('+');
+items.push({id:'enr_'+s.name,name:s.name,grade:s.grade,school:s.school,
+parentPhone:s.parentPhone,studentPhone:s.studentPhone,subjects:s.subjects,
+meta:s.grade+' · '+s.school+(subj?' ['+subj+']':''),source:'enrolled',tags:
+[{text:'재원',bg:'var(--acbg)',color:'var(--ac)'}]});});
+sdInit('sd-lt',items,null,loadLtStudents);
+if(autoSelectId)sdAutoSelect('sd-lt',autoSelectId);}
 
 function ltSubjectChange(){
 var subj=$('lt-subject').value;var sel=$('lt-level');sel.innerHTML='<option value="">레벨 선택</option>';
@@ -966,13 +1133,29 @@ sh('확인 중...');var r=await gA('tp_counsel_verifyAdmin',{password:pw,token:S
 if(r.ok){AN.unlocked=true;$('an-lock').style.display='none';$('an-content').style.display='block';loadAnStudents();}
 else{$('an-pw-err').textContent=r.error||'비밀번호 오류';}}
 
-async function loadAnStudents(){
-sh('학생 목록...');var r=await gA('tp_counsel_analysisStudents',{token:S.tk});hd();
+async function loadAnStudents(autoSelectId){
+sh('학생 목록...');
+var r=await gA('tp_counsel_analysisStudents',{token:S.tk});
+var enrolled=await fetchEnrolled();
+hd();
 if(!r.ok){ts(r.error,'er');return;}AN.students=r.students;
-var sel=$('an-student');sel.innerHTML='<option value="">학생 선택...</option>';
-r.students.forEach(function(s){var status=s.has_analysis?'✅ 분석완료':s.status;sel.innerHTML+='<option value="'+s.student_id+'">'+esc(s.name)+' ('+s.grade+') — '+status+'</option>';});
-sel.onchange=function(){var sid=this.value;$('an-run-btn').disabled=!sid;if(!sid){$('an-student-info').innerHTML='';$('an-result').innerHTML='';return;}
+var items=[];
+r.students.forEach(function(s){
+var tags=[];
+if(s.has_analysis)tags.push({text:'분석완료',bg:'var(--okbg)',color:'#15803d'});
+items.push({id:s.student_id,name:s.name,grade:s.grade,school:s.school,
+meta:s.grade+' · '+s.school,source:'new',tags:tags});});
+enrolled.forEach(function(s){
+var subj=(s.subjects||[]).join('+');
+items.push({id:'enr_'+s.name,name:s.name,grade:s.grade,school:s.school,
+parentPhone:s.parentPhone,studentPhone:s.studentPhone,subjects:s.subjects,
+meta:s.grade+' · '+s.school+(subj?' ['+subj+']':''),source:'enrolled',tags:
+[{text:'재원',bg:'var(--acbg)',color:'var(--ac)'}]});});
+sdInit('sd-an',items,function(sid){
+$('an-run-btn').disabled=!sid;
+if(!sid){$('an-student-info').innerHTML='';$('an-result').innerHTML='';return;}
 var s=AN.students.find(function(x){return x.student_id===sid;});
+if(!s){$('an-student-info').innerHTML='';return;}
 var h='<div class="form-card"><strong>'+esc(s.name)+'</strong> — '+s.grade+' · '+s.school+'<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">';
 h+='<span class="chip '+(s.has_survey?'chip-ok':'chip-n')+'">성향 '+(s.has_survey?'✓':'—')+'</span>';
 h+='<span class="chip '+(s.has_eng?'chip-ok':'chip-n')+'">영어LT '+(s.has_eng?'✓':'—')+'</span>';
@@ -981,7 +1164,8 @@ h+='<span class="chip '+(s.has_analysis?'chip-ok':'chip-n')+'">분석 '+(s.has_a
 h+='</div>';
 if(s.has_analysis){h+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-sm" onclick="anViewResult(\''+sid+'\')">결과 보기</button><button class="btn btn-sm" style="background:var(--wn);color:#fff" onclick="anRun()">재분석</button></div>';}
 h+='</div>';$('an-student-info').innerHTML=h;$('an-result').innerHTML='';
-};}
+},loadAnStudents);
+if(autoSelectId)sdAutoSelect('sd-an',autoSelectId);}
 
 async function anRun(){
 var sid=$('an-student').value;if(!sid){alert('학생을 선택하세요.');return;}

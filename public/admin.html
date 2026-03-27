@@ -532,12 +532,13 @@ var r=await gA('tp_counsel_surveyStudents',{token:S.tk});
 if(!r.ok&&(r.error||'').indexOf('인증')>=0){doLogout();ts('인증이 만료되었습니다. 다시 로그인해주세요.','er');}
 }catch(e){}}
 
-// ═══ API 래퍼 (인증 실패 자동 처리) ═══
+// ═══ API 래퍼 (인증 실패 자동 처리 + 재시도) ═══
+async function _fetchRetry(fn,retries){retries=retries||2;for(var i=0;i<=retries;i++){try{return await fn();}catch(e){if(i===retries)throw e;await new Promise(function(ok){setTimeout(ok,1000*(i+1))});}}};
+
 async function gA(action,params){
 const qs=new URLSearchParams(Object.assign({action},params||{}));
 try{
-const r=await fetch(API+'?'+qs);
-const data=await r.json();
+const data=await _fetchRetry(async function(){const r=await fetch(API+'?'+qs);return r.json();});
 if(data&&!data.ok&&data.error&&(data.error.indexOf('인증')>=0||data.error.indexOf('토큰')>=0||data.error.indexOf('권한')>=0)){
 clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
 touchSession();return data;
@@ -545,8 +546,7 @@ touchSession();return data;
 
 async function pA(data){
 try{
-const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-const res=await r.json();
+const res=await _fetchRetry(async function(){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json();});
 if(res&&!res.ok&&res.error&&(res.error.indexOf('인증')>=0||res.error.indexOf('토큰')>=0||res.error.indexOf('권한')>=0)){
 clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
 touchSession();return res;

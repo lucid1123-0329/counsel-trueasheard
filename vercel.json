@@ -23,7 +23,7 @@
     },
     {
       "src": "/admin",
-      "dest": "/admin.html"
+      "dest": "/public/admin.html"
     },
     {
       "src": "/(.*)",

@@ -3,19 +3,19 @@
   "routes": [
     {
       "src": "/favicon.ico",
-      "dest": "/public/favicon.ico"
+      "dest": "/favicon.ico"
     },
     {
       "src": "/favicon-32.png",
-      "dest": "/public/favicon-32.png"
+      "dest": "/favicon-32.png"
     },
     {
       "src": "/apple-touch-icon.png",
-      "dest": "/public/apple-touch-icon.png"
+      "dest": "/apple-touch-icon.png"
     },
     {
       "src": "/og-mbhj-v2.png",
-      "dest": "/public/og-mbhj-v2.png"
+      "dest": "/og-mbhj-v2.png"
     },
     {
       "src": "/api/gs",
@@ -23,7 +23,7 @@
     },
     {
       "src": "/admin",
-      "dest": "/public/admin.html"
+      "dest": "/admin.html"
     },
     {
       "src": "/(.*)",

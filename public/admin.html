@@ -469,8 +469,8 @@ function ts(m,type){const t=$('toast');t.textContent=m;t.className='toast show t
 
 // ═══ 보안 세션 관리 ═══
 const SESSION_KEY='counsel_session';
-const SESSION_TTL=4*60*60*1000; // 4시간
-const IDLE_LIMIT=30*60*1000; // 30분 무활동 시 만료
+const SESSION_TTL=9*60*60*1000; // 9시간
+const IDLE_LIMIT=2*60*60*1000; // 2시간 무활동 시 만료
 let idleTimer=null;
 
 function saveSession(){
@@ -485,9 +485,9 @@ try{
 var raw=sessionStorage.getItem(SESSION_KEY);
 if(!raw)return null;
 var sess=JSON.parse(raw);
-// TTL 만료 확인 (4시간)
+// TTL 만료 확인 (9시간)
 if(Date.now()-sess.loginAt>SESSION_TTL){sessionStorage.removeItem(SESSION_KEY);return null;}
-// IDLE 만료 확인 (30분)
+// IDLE 만료 확인 (2시간)
 if(Date.now()-sess.lastActive>IDLE_LIMIT){sessionStorage.removeItem(SESSION_KEY);return null;}
 return sess;
 }catch(e){sessionStorage.removeItem(SESSION_KEY);return null;}}
@@ -511,7 +511,7 @@ function resetIdleTimer(){
 if(idleTimer)clearTimeout(idleTimer);
 touchSession();
 idleTimer=setTimeout(function(){
-if(S.tk){ts('30분간 활동이 없어 자동 로그아웃됩니다','er');setTimeout(doLogout,2000);}
+if(S.tk){ts('2시간 활동이 없어 자동 로그아웃됩니다','er');setTimeout(doLogout,2000);}
 },IDLE_LIMIT);}
 
 // 사용자 활동 이벤트 감시

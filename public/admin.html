@@ -533,20 +533,23 @@ if(!r.ok&&(r.error||'').indexOf('인증')>=0){doLogout();ts('인증이 만료되
 }catch(e){}}
 
 // ═══ API 래퍼 (인증 실패 자동 처리 + 재시도) ═══
-async function _fetchRetry(fn,retries){retries=retries||2;for(var i=0;i<=retries;i++){try{return await fn();}catch(e){if(i===retries)throw e;await new Promise(function(ok){setTimeout(ok,1000*(i+1))});}}};
+// retries=0 이면 재시도 없음 (멱등하지 않은 긴 작업용 — 예: Gemini 분석)
+async function _fetchRetry(fn,retries){if(retries===undefined||retries===null)retries=2;for(var i=0;i<=retries;i++){try{return await fn();}catch(e){if(i===retries)throw e;await new Promise(function(ok){setTimeout(ok,1000*(i+1))});}}};
 
-async function gA(action,params){
+async function gA(action,params,opts){
 const qs=new URLSearchParams(Object.assign({action},params||{}));
+const retries=opts&&typeof opts.retries==='number'?opts.retries:2;
 try{
-const data=await _fetchRetry(async function(){const r=await fetch(API+'?'+qs);return r.json();});
+const data=await _fetchRetry(async function(){const r=await fetch(API+'?'+qs);return r.json();},retries);
 if(data&&!data.ok&&data.error&&(data.error.indexOf('인증')>=0||data.error.indexOf('토큰')>=0||data.error.indexOf('권한')>=0)){
 clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
 touchSession();return data;
 }catch(e){return{ok:false,error:'서버 연결 실패'};}}
 
-async function pA(data){
+async function pA(data,opts){
+const retries=opts&&typeof opts.retries==='number'?opts.retries:2;
 try{
-const res=await _fetchRetry(async function(){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json();});
+const res=await _fetchRetry(async function(){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json();},retries);
 if(res&&!res.ok&&res.error&&(res.error.indexOf('인증')>=0||res.error.indexOf('토큰')>=0||res.error.indexOf('권한')>=0)){
 clearSession();doLogout();ts('인증이 만료되었습니다','er');return{ok:false,error:'세션 만료'};}
 touchSession();return res;
@@ -1173,7 +1176,9 @@ var sid=$('an-student').value;if(!sid){alert('학생을 선택하세요.');retur
 var s=AN.students.find(function(x){return x.student_id===sid;});
 if(s&&s.has_analysis&&!confirm('이미 분석이 완료되었습니다. 재분석하시겠습니까?\nGemini API를 다시 호출합니다.'))return;
 sh('Gemini 종합분석 중... (2~3분 소요)');
-var r=await pA({action:'tp_counsel_runAnalysis',token:S.tk,studentId:sid});hd();
+// 긴 작업: 클라이언트 retry 비활성화 (Vercel Edge 25초 타임아웃으로 인한 3중 저장 방지)
+// 프록시 타임아웃 시 GAS는 백그라운드에서 계속 진행되어 시트에 1회 저장됨 — 잠시 후 결과 보기로 확인
+var r=await pA({action:'tp_counsel_runAnalysis',token:S.tk,studentId:sid},{retries:0});hd();
 if(r.ok){
 ts(r.message,'ok');
 var name=s?s.name:'';

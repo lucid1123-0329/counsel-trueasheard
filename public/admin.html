@@ -1178,7 +1178,9 @@ if(s&&s.has_analysis&&!confirm('이미 분석이 완료되었습니다. 재분�
 sh('Gemini 종합분석 중... (2~3분 소요)');
 // 긴 작업: 클라이언트 retry 비활성화 (Vercel Edge 25초 타임아웃으로 인한 3중 저장 방지)
 // 프록시 타임아웃 시 GAS는 백그라운드에서 계속 진행되어 시트에 1회 저장됨 — 잠시 후 결과 보기로 확인
-var r=await pA({action:'tp_counsel_runAnalysis',token:S.tk,studentId:sid},{retries:0});hd();
+// 재분석(has_analysis=true) 케이스에서는 force:1 — GAS의 5분 캐시를 우회해 학생 마스터 AE열을 새 결과로 갱신
+var isRerun=(s&&s.has_analysis)?1:0;
+var r=await pA({action:'tp_counsel_runAnalysis',token:S.tk,studentId:sid,force:isRerun},{retries:0});hd();
 if(r.ok){
 ts(r.message,'ok');
 var name=s?s.name:'';
